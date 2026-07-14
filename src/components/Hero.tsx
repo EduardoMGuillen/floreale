@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { BRAND } from "@/lib/constants";
+import { BRAND, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/constants";
 import { demoImages } from "@/lib/demo-images";
 
 export default function Hero() {
@@ -43,6 +43,21 @@ export default function Hero() {
           className="btn-pill btn-pill-light mt-8"
         >
           Ver todo
+        </motion.a>
+        <motion.a
+          href={INSTAGRAM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.28 }}
+          className="mt-5 inline-flex items-center gap-2 text-sm tracking-wide text-white/85 transition hover:text-white"
+          aria-label={`Instagram ${INSTAGRAM_HANDLE}`}
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
+            <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" />
+          </svg>
+          {INSTAGRAM_HANDLE}
         </motion.a>
       </div>
     </section>

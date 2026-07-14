@@ -7,6 +7,9 @@ export const SITE_URL =
 export const NEXUS_URL = "https://www.nexusglobalsuministros.com/";
 export const AUTH_COOKIE = "roselune_session";
 
+export const INSTAGRAM_URL = "https://www.instagram.com/roselunehn/";
+export const INSTAGRAM_HANDLE = "@roselunehn";
+
 export const CONTACT = {
   phoneDisplay: "+504 9372-0140",
   phoneHref: `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || "50493720140"}`,
