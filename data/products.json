@@ -1,0 +1,68 @@
+[
+  {
+    "id": "ramo-jardin-suave",
+    "name": "Ramo Jardín Suave",
+    "description": "Mix de flores de temporada en tonos pastel, envuelto en papel kraft y cinta de seda.",
+    "price": 850,
+    "image": "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=800&q=80",
+    "category": "Ramos",
+    "promo": true,
+    "active": true,
+    "createdAt": "2026-07-01T12:00:00.000Z"
+  },
+  {
+    "id": "arreglo-amanecer",
+    "name": "Arreglo Amanecer",
+    "description": "Centro de mesa con rosas y eucalipto. Ideal para cumpleañeros y bienvenidas.",
+    "price": 1200,
+    "image": "https://images.unsplash.com/photo-1519378058459-4fad1a5b0175?w=800&q=80",
+    "category": "Arreglos",
+    "promo": false,
+    "active": true,
+    "createdAt": "2026-07-01T12:00:00.000Z"
+  },
+  {
+    "id": "caja-botanica",
+    "name": "Caja Botánica",
+    "description": "Flores preservadas en caja circular de madera clara. Detalle premium y duradero.",
+    "price": 1450,
+    "image": "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=800&q=80",
+    "category": "Cajas",
+    "promo": false,
+    "active": true,
+    "createdAt": "2026-07-01T12:00:00.000Z"
+  },
+  {
+    "id": "bouquet-romance",
+    "name": "Bouquet Romance",
+    "description": "Rosas clásicas en tonos coral y crema, perfecto para aniversarios.",
+    "price": 980,
+    "image": "https://images.unsplash.com/photo-1455659817273-f96807726550?w=800&q=80",
+    "category": "Ramos",
+    "promo": true,
+    "active": true,
+    "createdAt": "2026-07-01T12:00:00.000Z"
+  },
+  {
+    "id": "orquideas-elegance",
+    "name": "Orquídeas Élégance",
+    "description": "Orquídeas blancas en base de cerámica mate. Elegancia minimalista.",
+    "price": 1650,
+    "image": "https://images.unsplash.com/photo-1487070183336-b863922373d4?w=800&q=80",
+    "category": "Plantas",
+    "promo": false,
+    "active": true,
+    "createdAt": "2026-07-01T12:00:00.000Z"
+  },
+  {
+    "id": "mini-dulce",
+    "name": "Mini Dulce",
+    "description": "Pequeño bouquet para detalles cotidianos: gracias, perdón o solo porque sí.",
+    "price": 420,
+    "image": "https://images.unsplash.com/photo-1591886960571-74d43a9d4166?w=800&q=80",
+    "category": "Ramos",
+    "promo": false,
+    "active": true,
+    "createdAt": "2026-07-01T12:00:00.000Z"
+  }
+]
