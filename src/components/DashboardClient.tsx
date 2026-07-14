@@ -33,6 +33,7 @@ export default function DashboardClient() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me");
@@ -79,15 +80,40 @@ export default function DashboardClient() {
     setError("");
   }
 
+  async function onImageFileChange(file: File | null) {
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "No se pudo subir la imagen");
+        return;
+      }
+      setForm((prev) => ({ ...prev, image: data.url as string }));
+    } catch {
+      setError("Error al subir la imagen. Revisa la conexión.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!form.image.trim()) {
+      setError("Agrega una imagen (subida o URL)");
+      return;
+    }
     setSaving(true);
     setError("");
     const payload = {
       name: form.name,
       description: form.description,
       price: Number(form.price) || 0,
-      image: form.image,
+      image: form.image.trim(),
       category: form.category,
       promo: form.promo,
       active: form.active,
@@ -229,17 +255,62 @@ export default function DashboardClient() {
                 />
               </label>
             </div>
-            <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
-              URL de imagen
-              <input
-                required
-                type="url"
-                value={form.image}
-                onChange={(e) => setForm({ ...form, image: e.target.value })}
-                placeholder="https://..."
-                className={inputClass}
-              />
-            </label>
+            <div className="space-y-3">
+              <p className="text-[11px] uppercase tracking-[0.14em] text-muted">
+                Imagen del producto
+              </p>
+
+              {form.image ? (
+                <div className="relative aspect-square w-full max-w-[220px] overflow-hidden bg-soft">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={form.image}
+                    alt="Vista previa"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex aspect-square w-full max-w-[220px] items-center justify-center border border-dashed border-line bg-soft text-center text-xs text-muted">
+                  Sin imagen
+                </div>
+              )}
+
+              <label className="btn-pill inline-flex cursor-pointer !normal-case tracking-normal">
+                {uploading ? "Subiendo…" : "Subir foto (galería o cámara)"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/*"
+                  className="sr-only"
+                  disabled={uploading || saving}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    void onImageFileChange(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <p className="text-xs text-muted">
+                En el móvil puedes elegir una foto de la galería o tomar una nueva.
+                JPG, PNG o WEBP · máx. 8 MB.
+              </p>
+
+              <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
+                O pegar URL de imagen
+                <input
+                  type="text"
+                  inputMode="url"
+                  value={form.image}
+                  onChange={(e) => setForm({ ...form, image: e.target.value })}
+                  placeholder="https://… o /uploads/…"
+                  className={inputClass}
+                />
+              </label>
+              {!form.image && (
+                <p className="text-xs text-promo">
+                  Sube una foto o indica una URL para continuar.
+                </p>
+              )}
+            </div>
             <div className="flex flex-wrap gap-4 pt-1 text-sm">
               <label className="flex items-center gap-2">
                 <input
@@ -274,7 +345,7 @@ export default function DashboardClient() {
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || uploading || !form.image.trim()}
                 className="btn-pill disabled:opacity-60"
               >
                 {saving
@@ -307,12 +378,11 @@ export default function DashboardClient() {
                 className="flex gap-4 border border-line bg-paper p-3 sm:p-4"
               >
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-soft sm:h-24 sm:w-24">
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={product.image}
                     alt=""
-                    fill
-                    sizes="96px"
-                    className="object-cover"
+                    className="h-full w-full object-cover"
                   />
                 </div>
                 <div className="min-w-0 flex-1">

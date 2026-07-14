@@ -53,8 +53,9 @@ Además de la landing, esta plantilla incluye:
 
 - Ruta: `/dashboard` (`src/app/dashboard/page.tsx` + `components/DashboardClient.tsx`)
 - Acciones: crear, editar, eliminar productos; marcar/quitar **promoción**; ocultar/mostrar en tienda (`active`)
+- Imagen: subir archivo desde móvil/PC (`POST /api/upload` → `public/uploads/`) o pegar URL
 - Persistencia: `data/products.json` vía `lib/products.ts`
-- API: `GET/POST /api/products`, `GET/PATCH/DELETE /api/products/[id]`
+- API: `GET/POST /api/products`, `GET/PATCH/DELETE /api/products/[id]`, `POST /api/upload`
 - Formulario responsive (móvil y desktop en dos columnas)
 
 ### Compra por WhatsApp
@@ -93,6 +94,7 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 | Credenciales admin | `.env.local` (`ADMIN_USER`, `ADMIN_PASSWORD`) |
 | Login UI | `app/login/page.tsx` |
 | Panel CRUD productos | `components/DashboardClient.tsx`, `app/dashboard/page.tsx` |
+| Subida de imágenes | `app/api/upload/route.ts`, carpeta `public/uploads/` |
 | Persistencia catálogo | `data/products.json`, `lib/products.ts`, `app/api/products/**` |
 | Auth / cookie | `lib/auth.ts`, `app/api/auth/**`, `middleware.ts` |
 | WhatsApp + mensaje de pedido | `lib/whatsapp.ts`, `lib/constants.ts` |
