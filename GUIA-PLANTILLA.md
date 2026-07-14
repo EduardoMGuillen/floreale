@@ -49,8 +49,34 @@ Esta plantilla usa **Vercel Blob** (`@vercel/blob`) vía `lib/blob-store.ts`:
 
 | Entorno | Productos | Imágenes subidas |
 |---------|-----------|------------------|
-| **Vercel** (con token) | Blob `roselune/products.json` | Blob `roselune/uploads/…` |
+| **Vercel** (con token) | Blob `roselune/catalog/*.json` (versiones) | Blob `roselune/uploads/…` |
 | **Local** (sin token) | `data/products.json` | `public/uploads/` |
+
+Legacy: si aún existe `roselune/products.json`, se lee una vez y luego se migra al esquema con versiones.
+
+#### Cómo se guarda el catálogo (importante)
+
+**No** se sobrescribe un único `products.json`. Cada crear / editar / borrar / promo / ocultar escribe un archivo **nuevo**:
+
+`roselune/catalog/<timestamp>-<id>.json`
+
+Luego se lista el prefijo y se usa la versión **más reciente**. Se conservan unas pocas versiones viejas y el resto se limpian.
+
+**Por qué:** al sobrescribir el mismo pathname, el CDN de Blob puede servir la versión anterior durante **hasta ~60 segundos**. Eso provocaba:
+
+- “No se pudo leer el catálogo”
+- Productos que “vuelven” o **desaparecen** al borrar/agregar seguido
+- Catálogo vacío al dar Reintentar (datos ya pisados con una lectura stale)
+
+Con pathnames únicos, cada guardado es una URL fresca y no depende de esa caché de overwrite.
+
+#### Uso del dashboard (operadores)
+
+- **No hace falta esperar 1 minuto** entre agregar y borrar.
+- Sí hay que **esperar a que cierre el loading** del panel antes de la siguiente acción (unos segundos).
+- Un catálogo **vacío es válido** (tras borrar todo): **no** se vuelve a sembrar solo con los demos de `data/products.json`.
+- Si falla la lectura, el panel muestra el error y un botón **Reintentar** (no vacía la lista solo por un fallo de red).
+- Tras un guardado exitoso, la API devuelve el catálogo ya escrito; el UI lo aplica sin “martillar” lecturas de confirmación.
 
 #### Pasos en el dashboard de Vercel
 
@@ -72,6 +98,8 @@ Esta plantilla usa **Vercel Blob** (`@vercel/blob`) vía `lib/blob-store.ts`:
 
 Con solo `BLOB_STORE_ID` a veces funciona (OIDC), pero si ves *Access denied*, agrega **`BLOB_READ_WRITE_TOKEN`** y vuelve a desplegar.
 
+Opcional: `BLOB_ACCESS=private` solo si el store es Private (las fotos de producto dejarían de ser URLs públicas; esta plantilla asume **Public**).
+
 **Errores frecuentes**
 
 | Síntoma | Causa habitual | Qué hacer |
@@ -79,13 +107,16 @@ Con solo `BLOB_STORE_ID` a veces funciona (OIDC), pero si ves *Access denied*, a
 | Access denied / valid token | Blob Private + `access: public`, o falta RW token | Blob **Public** + `BLOB_READ_WRITE_TOKEN` + Redeploy |
 | Solo tienes STORE_ID y WEBHOOK key | Falta el token RW | Cópialo del store y añádelo a Env |
 | Sube en local pero no en Vercel | Env no aplicada a Production | Marca Production y Redeploy |
+| Catálogo vacío / productos “se borran solos” al guardar seguido | Sobrescribir el mismo JSON + caché CDN (~60s) | Usar versiones en `roselune/catalog/` (ya en `blob-store.ts`) + no actuar hasta cerrar el loading |
+| “No se pudo leer el catálogo” + Reintentar sin datos | Lectura falló o el catálogo ya quedó `[]` en Blob | Revisar token/Blob; si el JSON está vacío, **volver a agregar** productos (no se recuperan solos) |
 
 #### Archivos clave
 
-- `src/lib/blob-store.ts` — lectura/escritura Blob + fallback local  
-- `src/lib/products.ts` — CRUD del catálogo  
+- `src/lib/blob-store.ts` — lectura/escritura Blob (catálogo versionado + uploads) + fallback local  
+- `src/lib/products.ts` — CRUD; mutaciones devuelven `{ product?, products }`  
 - `src/app/api/upload/route.ts` — subida de fotos (comprimidas en el navegador antes)  
-- `data/products.json` — semilla inicial (demo); en Vercel se copia a Blob la primera vez si aún no existe el archivo en Blob  
+- `src/components/DashboardClient.tsx` — panel; espera loading; aplica catálogo desde la respuesta del API  
+- `data/products.json` — semilla **solo** la primera vez (si no hay ninguna versión en Blob); un catálogo vacío no se re-siembra  
 
 ### Login administrativo
 
@@ -99,7 +130,9 @@ Con solo `BLOB_STORE_ID` a veces funciona (OIDC), pero si ves *Access denied*, a
 ### Panel / dashboard de productos
 
 - Ruta: `/dashboard` (`src/app/dashboard/page.tsx` + `components/DashboardClient.tsx`)
-- Acciones: crear, editar, eliminar (optimista), marcar/quitar **promoción**, ocultar/mostrar (`active`)
+- Acciones: crear, editar, eliminar, marcar/quitar **promoción**, ocultar/mostrar (`active`)
+- Tras cada acción exitosa, la API responde con el catálogo actualizado y el panel lo pinta de inmediato (sin reconfirmar a fuerza con muchas lecturas)
+- **Espera a que cierre el loading** antes de la siguiente acción; no hace falta esperar ~60s entre operaciones
 - Imagen: comprimir en el cliente → `POST /api/upload` → URL pública (Blob en Vercel)
 - También se puede pegar una URL manual de imagen
 - API: `GET/POST /api/products`, `GET/PATCH/DELETE /api/products/[id]`, `POST /api/upload`
