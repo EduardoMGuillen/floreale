@@ -55,21 +55,30 @@ Esta plantilla usa **Vercel Blob** (`@vercel/blob`) vía `lib/blob-store.ts`:
 #### Pasos en el dashboard de Vercel
 
 1. Abre el proyecto en [vercel.com](https://vercel.com).
-2. Ve a **Storage** → **Create** → **Blob**.
-3. Crea el store y **Connect** / enlázalo al proyecto (Production y Preview).
-4. Vercel conecta el store al proyecto. En Env Variables deberías ver al menos:
-   - **`BLOB_STORE_ID`** (actual; autentica con OIDC en Vercel)
-   - a veces `BLOB_WEBHOOK_PUBLIC_KEY` (webhooks; no es necesario para esta app)
-   - a veces también `BLOB_READ_WRITE_TOKEN` (token estático opcional)
-5. Confirma en **Settings → Environment Variables** que `BLOB_STORE_ID` (o `BLOB_READ_WRITE_TOKEN`) esté en Production y Preview.
-6. También configura el resto de variables (ver abajo).
-7. Haz un **Redeploy** para que carguen las variables.
+2. Ve a **Storage** → **Create** / **Create Database** → **Blob**.
+3. Elige acceso **Public** (obligatorio para que las fotos se vean en la tienda).  
+   Si creaste uno **Private**, bórralo y crea otro **Public** — si no, verás *Access denied*.
+4. Conéctalo a este proyecto (Production + Preview).
+5. Variables típicas que aparecen:
+   - `BLOB_STORE_ID` — ID del store
+   - `BLOB_WEBHOOK_PUBLIC_KEY` — se puede ignorar
+   - **`BLOB_READ_WRITE_TOKEN`** — token largo; **recomendado** (evita *Access denied*)
+6. Si **no** te salió `BLOB_READ_WRITE_TOKEN`:
+   - Entra a **Storage** → clic en tu Blob store  
+   - Busca pestaña **`.env.local`**, **Settings** o **Tokens** y copia `BLOB_READ_WRITE_TOKEN`  
+   - O en la CLI: `npx vercel env pull` (con el proyecto linkeado)  
+   - Pégalo en **Settings → Environment Variables** (Production + Preview)
+7. **Redeploy** después de agregar/cambiar variables.
 
-Con `BLOB_STORE_ID` basta en Vercel (el SDK usa OIDC automáticamente). `BLOB_WEBHOOK_PUBLIC_KEY` puedes ignorarlo para RoseLune.
+Con solo `BLOB_STORE_ID` a veces funciona (OIDC), pero si ves *Access denied*, agrega **`BLOB_READ_WRITE_TOKEN`** y vuelve a desplegar.
 
-**Importante:** el Blob debe ser de acceso **Public** para que las fotos del catálogo se vean en la tienda.
+**Errores frecuentes**
 
-Sin `BLOB_STORE_ID` ni `BLOB_READ_WRITE_TOKEN` en Production, el admin fallará al guardar, borrar o subir imágenes.
+| Síntoma | Causa habitual | Qué hacer |
+|---------|----------------|-----------|
+| Access denied / valid token | Blob Private + `access: public`, o falta RW token | Blob **Public** + `BLOB_READ_WRITE_TOKEN` + Redeploy |
+| Solo tienes STORE_ID y WEBHOOK key | Falta el token RW | Cópialo del store y añádelo a Env |
+| Sube en local pero no en Vercel | Env no aplicada a Production | Marca Production y Redeploy |
 
 #### Archivos clave
 
