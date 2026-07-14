@@ -1,6 +1,8 @@
 import {
   put,
   get,
+  list,
+  del,
   BlobAccessError,
   BlobNotFoundError,
 } from "@vercel/blob";
@@ -8,8 +10,12 @@ import { promises as fs } from "fs";
 import path from "path";
 import type { Product } from "./types";
 
-const PRODUCTS_BLOB_KEY = "roselune/products.json";
+/** Legacy single file — CDN cache of overwrites caused lost updates. */
+const LEGACY_PRODUCTS_KEY = "roselune/products.json";
+/** Each save writes a NEW pathname so reads never hit a stale overwrite. */
+const CATALOG_PREFIX = "roselune/catalog/";
 const LEGACY_PATH = path.join(process.cwd(), "data", "products.json");
+const KEEP_CATALOG_VERSIONS = 8;
 
 export function hasBlobStore() {
   return Boolean(
@@ -95,84 +101,124 @@ async function streamToText(stream: ReadableStream<Uint8Array>) {
   return new Response(stream).text();
 }
 
-/**
- * Read via authenticated get() — more reliable than public fetch(url),
- * which often fails with private stores or CDN auth errors.
- */
-async function readFromBlob(): Promise<BlobRead> {
-  return withBlobErrors(async () => {
+function parseProductsJson(text: string): Product[] {
+  const parsed = JSON.parse(text) as Product[];
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+async function getProductsFromPath(
+  urlOrPathname: string,
+): Promise<Product[] | null> {
+  const accessModes: Array<"public" | "private"> = [
+    blobAccess(),
+    blobAccess() === "public" ? "private" : "public",
+  ];
+
+  let lastErr: unknown;
+  for (const access of accessModes) {
     try {
-      const result = await get(PRODUCTS_BLOB_KEY, {
-        access: blobAccess(),
+      const result = await get(urlOrPathname, {
+        access,
         useCache: false,
         ...blobAuthOptions(),
       });
-
-      if (!result) {
-        return { status: "missing" };
-      }
-
+      if (!result) return null;
       if (result.statusCode !== 200 || !result.stream) {
-        throw new Error(
-          `No se pudo leer el catálogo (status ${result.statusCode})`,
-        );
+        lastErr = new Error(`status ${result.statusCode}`);
+        continue;
       }
-
-      const text = await streamToText(result.stream);
-      const parsed = JSON.parse(text) as Product[];
-      return {
-        status: "ok",
-        products: Array.isArray(parsed) ? parsed : [],
-      };
+      return parseProductsJson(await streamToText(result.stream));
     } catch (err) {
-      if (isNotFound(err)) return { status: "missing" };
-
-      // Fallback: try the opposite access mode once (Public vs Private mismatch)
-      try {
-        const other = blobAccess() === "public" ? "private" : "public";
-        const result = await get(PRODUCTS_BLOB_KEY, {
-          access: other,
-          useCache: false,
-          ...blobAuthOptions(),
-        });
-        if (!result) return { status: "missing" };
-        if (result.statusCode !== 200 || !result.stream) throw err;
-        const text = await streamToText(result.stream);
-        const parsed = JSON.parse(text) as Product[];
-        return {
-          status: "ok",
-          products: Array.isArray(parsed) ? parsed : [],
-        };
-      } catch (err2) {
-        if (isNotFound(err2)) return { status: "missing" };
-        throw err;
-      }
+      if (isNotFound(err)) return null;
+      lastErr = err;
     }
+  }
+  if (lastErr) throw lastErr;
+  return null;
+}
+
+async function listCatalogVersions() {
+  const { blobs } = await list({
+    prefix: CATALOG_PREFIX,
+    limit: 100,
+    ...blobAuthOptions(),
+  });
+  return [...blobs].sort(
+    (a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime(),
+  );
+}
+
+async function pruneOldCatalogVersions(
+  versions: Awaited<ReturnType<typeof listCatalogVersions>>,
+) {
+  const stale = versions.slice(KEEP_CATALOG_VERSIONS);
+  if (stale.length === 0) return;
+  try {
+    await del(
+      stale.map((b) => b.url),
+      blobAuthOptions(),
+    );
+  } catch {
+    // Non-fatal: old versions just linger a bit
+  }
+}
+
+/**
+ * Read via list()+unique version URLs — never rely on overwriting one pathname
+ * (Blob CDN can serve the previous JSON for ~60s after overwrite).
+ */
+async function readFromBlob(): Promise<BlobRead> {
+  return withBlobErrors(async () => {
+    const versions = await listCatalogVersions();
+    if (versions.length > 0) {
+      const latest = versions[0];
+      const products = await getProductsFromPath(latest.url);
+      if (products) return { status: "ok", products };
+      throw new Error("No se pudo leer la última versión del catálogo");
+    }
+
+    // Migrate once from the legacy fixed pathname if it still exists
+    try {
+      const legacy = await getProductsFromPath(LEGACY_PRODUCTS_KEY);
+      if (legacy) return { status: "ok", products: legacy };
+    } catch (err) {
+      if (!isNotFound(err)) throw err;
+    }
+
+    return { status: "missing" };
   });
 }
 
 async function writeToBlob(products: Product[]) {
   return withBlobErrors(async () => {
+    const pathname = `${CATALOG_PREFIX}${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}.json`;
     const payload = `${JSON.stringify(products, null, 2)}\n`;
-    // Try configured access; if Access denied, retry with the other mode
-    try {
-      await put(PRODUCTS_BLOB_KEY, payload, {
-        access: blobAccess(),
+
+    const tryPut = async (access: "public" | "private") => {
+      await put(pathname, payload, {
+        access,
         contentType: "application/json",
         addRandomSuffix: false,
-        allowOverwrite: true,
+        allowOverwrite: false,
+        cacheControlMaxAge: 60,
         ...blobAuthOptions(),
       });
+    };
+
+    try {
+      await tryPut(blobAccess());
     } catch (err) {
       if (!(err instanceof BlobAccessError)) throw err;
-      const other = blobAccess() === "public" ? "private" : "public";
-      await put(PRODUCTS_BLOB_KEY, payload, {
-        access: other,
-        contentType: "application/json",
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        ...blobAuthOptions(),
-      });
+      await tryPut(blobAccess() === "public" ? "private" : "public");
+    }
+
+    try {
+      const versions = await listCatalogVersions();
+      await pruneOldCatalogVersions(versions);
+    } catch {
+      // ignore prune failures
     }
   });
 }

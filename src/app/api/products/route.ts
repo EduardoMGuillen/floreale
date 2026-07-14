@@ -11,12 +11,25 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
   }
-  const products = await getProducts({ includeInactive: all });
-  return NextResponse.json(products, {
-    headers: {
-      "Cache-Control": "no-store, max-age=0",
-    },
-  });
+  try {
+    const products = await getProducts({ includeInactive: all });
+    return NextResponse.json(products, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
+  } catch (err) {
+    console.error("GET products", err);
+    return NextResponse.json(
+      {
+        error:
+          err instanceof Error
+            ? err.message
+            : "No se pudo leer el catálogo",
+      },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -34,7 +47,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const product = await createProduct({
+    const result = await createProduct({
       name: body.name,
       description: body.description || "",
       price: body.price ?? 0,
@@ -44,7 +57,7 @@ export async function POST(request: Request) {
       active: body.active !== false,
     });
 
-    return NextResponse.json(product, {
+    return NextResponse.json(result, {
       status: 201,
       headers: { "Cache-Control": "no-store" },
     });
@@ -53,7 +66,9 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "No se pudo guardar el producto. Si usas OneDrive, pausa la sincronización e intenta de nuevo.",
+          err instanceof Error
+            ? err.message
+            : "No se pudo guardar el producto.",
       },
       { status: 500 },
     );

@@ -50,9 +50,9 @@ export async function createProduct(input: ProductInput) {
     active: input.active !== false,
     createdAt: new Date().toISOString(),
   };
-  products.unshift(product);
-  await writeAll(products);
-  return product;
+  const next = [product, ...products];
+  await writeAll(next);
+  return { product, products: next };
 }
 
 export async function updateProduct(id: string, input: Partial<ProductInput>) {
@@ -61,7 +61,7 @@ export async function updateProduct(id: string, input: Partial<ProductInput>) {
   const idx = products.findIndex((p) => p.id === id || p.id === decoded);
   if (idx === -1) return null;
   const current = products[idx];
-  products[idx] = {
+  const updated: Product = {
     ...current,
     name: input.name?.trim() ?? current.name,
     description: input.description?.trim() ?? current.description,
@@ -72,12 +72,13 @@ export async function updateProduct(id: string, input: Partial<ProductInput>) {
     promo: input.promo !== undefined ? Boolean(input.promo) : current.promo,
     active: input.active !== undefined ? Boolean(input.active) : current.active,
   };
-  await writeAll(products);
-  return products[idx];
+  const next = [...products];
+  next[idx] = updated;
+  await writeAll(next);
+  return { product: updated, products: next };
 }
 
 export async function deleteProduct(id: string) {
-  // Retry read a few times — transient Blob read errors must not wipe / fail silently
   let products: Product[] | null = null;
   let lastError: unknown;
   for (let attempt = 0; attempt < 4; attempt++) {
@@ -86,7 +87,7 @@ export async function deleteProduct(id: string) {
       break;
     } catch (err) {
       lastError = err;
-      await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+      await new Promise((r) => setTimeout(r, 250 * (attempt + 1)));
     }
   }
   if (!products) {
@@ -97,7 +98,7 @@ export async function deleteProduct(id: string) {
 
   const decoded = decodeURIComponent(id);
   const next = products.filter((p) => p.id !== id && p.id !== decoded);
-  if (next.length === products.length) return false;
+  if (next.length === products.length) return null;
   await writeAll(next);
-  return true;
+  return { products: next };
 }

@@ -45,37 +45,16 @@ export default function DashboardClient() {
 
   const fetchAllProducts = useCallback(async () => {
     const res = await fetch("/api/products?all=1", { cache: "no-store" });
-    if (!res.ok) throw new Error("No se pudo verificar el catálogo");
-    return (await res.json()) as Product[];
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(
+        typeof data.error === "string"
+          ? data.error
+          : "No se pudo verificar el catálogo",
+      );
+    }
+    return data as Product[];
   }, []);
-
-  /** Keep overlay until Blob/API actually reflects the expected catalog state. */
-  const waitUntilReflected = useCallback(
-    async (
-      assert: (list: Product[]) => boolean,
-      confirmingLabel: string,
-    ) => {
-      setBusy({ label: confirmingLabel });
-      for (let attempt = 0; attempt < 10; attempt++) {
-        try {
-          const list = await fetchAllProducts();
-          if (assert(list)) {
-            setProducts(list);
-            router.refresh();
-            return true;
-          }
-        } catch {
-          // retry — never treat a failed read as “missing catalog”
-        }
-        await new Promise((r) => setTimeout(r, 350 + attempt * 150));
-      }
-      // Do NOT overwrite local list with a failed / stale fetch
-      // (that used to re-introduce deleted seed products)
-      router.refresh();
-      return false;
-    },
-    [fetchAllProducts, router],
-  );
 
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me", { cache: "no-store" });
@@ -88,12 +67,13 @@ export default function DashboardClient() {
       setProducts(list);
       setLoadFailed(false);
       setError("");
-    } catch {
+    } catch (err) {
       setLoadFailed(true);
       setError(
-        "No se pudo leer el catálogo. Tus productos pueden seguir en Blob: pulsa Reintentar. No agregues de nuevo todavía.",
+        err instanceof Error
+          ? err.message
+          : "No se pudo leer el catálogo. Pulsa Reintentar.",
       );
-      // Keep previous products if any; don't force []
     }
     setReady(true);
   }, [router, fetchAllProducts]);
@@ -131,7 +111,7 @@ export default function DashboardClient() {
   async function onImageFileChange(file: File | null) {
     if (!file || locked) return;
     setUploading(true);
-    setBusy({ label: "Subiendo imagen… Espera, no recargues la página." });
+    setBusy({ label: "Subiendo imagen…" });
     setError("");
     try {
       const { compressImageForUpload } = await import("@/lib/compress-image");
@@ -178,9 +158,7 @@ export default function DashboardClient() {
     const wasEditing = Boolean(editingId);
     const editId = editingId;
     setBusy({
-      label: wasEditing
-        ? "Guardando producto… No recargues."
-        : "Creando producto… No recargues (puede tardar unos segundos).",
+      label: wasEditing ? "Guardando producto…" : "Creando producto…",
     });
     setError("");
     const payload = {
@@ -203,34 +181,16 @@ export default function DashboardClient() {
           cache: "no-store",
         },
       );
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         setError(data.error || "No se pudo guardar");
         return;
       }
-      const saved = (await res.json()) as Product;
-      setBusy({
-        label: "Confirmando en el servidor… Espera a que se refleje.",
-      });
-      const ok = await waitUntilReflected(
-        (list) => {
-          const found = list.find((p) => p.id === saved.id);
-          if (!found) return false;
-          return (
-            found.name === saved.name &&
-            found.active === saved.active &&
-            found.promo === saved.promo &&
-            found.image === saved.image
-          );
-        },
-        "Confirmando creación/guardado… Aún no recargues.",
-      );
-      if (!ok) {
-        setError(
-          "Se guardó, pero tardó en confirmarse. Revisa el catálogo antes de volver a crear.",
-        );
+      if (Array.isArray(data.products)) {
+        setProducts(data.products as Product[]);
       }
       resetForm();
+      router.refresh();
     } catch {
       setError("Error de conexión");
     } finally {
@@ -243,9 +203,7 @@ export default function DashboardClient() {
     const nextPromo = !product.promo;
     setPendingId(product.id);
     setBusy({
-      label: nextPromo
-        ? "Marcando promoción… No recargues."
-        : "Quitando promoción… No recargues.",
+      label: nextPromo ? "Marcando promoción…" : "Quitando promoción…",
     });
     const previous = products;
     setProducts((prev) =>
@@ -260,18 +218,16 @@ export default function DashboardClient() {
         body: JSON.stringify({ promo: nextPromo }),
         cache: "no-store",
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setProducts(previous);
-        setError("No se pudo actualizar la promoción");
+        setError(data.error || "No se pudo actualizar la promoción");
         return;
       }
-      const ok = await waitUntilReflected(
-        (list) => list.some((p) => p.id === product.id && p.promo === nextPromo),
-        "Confirmando promoción… Espera.",
-      );
-      if (!ok) {
-        setError("El cambio de promo tarda en reflejarse. Revisa antes de repetir.");
+      if (Array.isArray(data.products)) {
+        setProducts(data.products as Product[]);
       }
+      router.refresh();
     } catch {
       setProducts(previous);
       setError("Error de conexión");
@@ -287,8 +243,8 @@ export default function DashboardClient() {
     setPendingId(product.id);
     setBusy({
       label: nextActive
-        ? "Mostrando en la tienda… No recargues."
-        : "Ocultando de la tienda… No recargues.",
+        ? "Mostrando en la tienda…"
+        : "Ocultando de la tienda…",
     });
     const previous = products;
     setProducts((prev) =>
@@ -303,23 +259,16 @@ export default function DashboardClient() {
         body: JSON.stringify({ active: nextActive }),
         cache: "no-store",
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setProducts(previous);
-        setError("No se pudo cambiar la visibilidad");
+        setError(data.error || "No se pudo cambiar la visibilidad");
         return;
       }
-      const ok = await waitUntilReflected(
-        (list) =>
-          list.some((p) => p.id === product.id && p.active === nextActive),
-        nextActive
-          ? "Confirmando que ya está visible… Espera."
-          : "Confirmando que ya está oculto… Espera.",
-      );
-      if (!ok) {
-        setError(
-          "La visibilidad tarda en reflejarse. Revisa la tienda antes de repetir.",
-        );
+      if (Array.isArray(data.products)) {
+        setProducts(data.products as Product[]);
       }
+      router.refresh();
     } catch {
       setProducts(previous);
       setError("Error de conexión");
@@ -334,9 +283,7 @@ export default function DashboardClient() {
     if (!confirm("¿Eliminar este producto del catálogo?")) return;
 
     setPendingId(id);
-    setBusy({
-      label: "Eliminando producto… No recargues hasta que termine.",
-    });
+    setBusy({ label: "Eliminando producto…" });
     const previous = products;
     setProducts((prev) => prev.filter((p) => p.id !== id));
     if (editingId === id) resetForm();
@@ -347,21 +294,16 @@ export default function DashboardClient() {
         method: "DELETE",
         cache: "no-store",
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         setProducts(previous);
         setError(data.error || "No se pudo eliminar el producto");
         return;
       }
-      const ok = await waitUntilReflected(
-        (list) => !list.some((p) => p.id === id),
-        "Confirmando eliminación… Espera a que desaparezca del catálogo.",
-      );
-      if (!ok) {
-        setError(
-          "La eliminación tarda en confirmarse. Revisa el catálogo antes de volver a crear el mismo producto.",
-        );
+      if (Array.isArray(data.products)) {
+        setProducts(data.products as Product[]);
       }
+      router.refresh();
     } catch {
       setProducts(previous);
       setError("Error de conexión al eliminar");
@@ -396,7 +338,7 @@ export default function DashboardClient() {
             <p className="font-display text-xl text-ink">Espera…</p>
             <p className="mt-2 text-sm text-muted">{busy.label}</p>
             <p className="mt-4 text-[11px] uppercase tracking-[0.14em] text-muted">
-              El loading cierra solo cuando el cambio ya está confirmado
+              No hagas otra acción hasta que esto cierre
             </p>
           </div>
         </div>
@@ -440,7 +382,7 @@ export default function DashboardClient() {
             {editingId ? "Editar producto" : "Agregar producto"}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Guardar en Vercel puede tardar unos segundos. Espera la confirmación.
+            Espera a que cierre el loading antes de la siguiente acción.
           </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">

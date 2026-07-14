@@ -10,13 +10,24 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   const { id } = await params;
-  const product = await getProductById(id);
-  if (!product || !product.active) {
-    return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  try {
+    const product = await getProductById(id);
+    if (!product || !product.active) {
+      return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    }
+    return NextResponse.json(product, {
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch (err) {
+    console.error("GET product", err);
+    return NextResponse.json(
+      {
+        error:
+          err instanceof Error ? err.message : "No se pudo leer el producto",
+      },
+      { status: 500 },
+    );
   }
-  return NextResponse.json(product, {
-    headers: { "Cache-Control": "no-store" },
-  });
 }
 
 export async function PATCH(request: Request, { params }: Params) {
@@ -27,17 +38,22 @@ export async function PATCH(request: Request, { params }: Params) {
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
   try {
-    const product = await updateProduct(id, body);
-    if (!product) {
+    const result = await updateProduct(id, body);
+    if (!result) {
       return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     }
-    return NextResponse.json(product, {
+    return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (err) {
     console.error("PATCH product", err);
     return NextResponse.json(
-      { error: "No se pudo guardar el cambio en el catálogo" },
+      {
+        error:
+          err instanceof Error
+            ? err.message
+            : "No se pudo guardar el cambio en el catálogo",
+      },
       { status: 500 },
     );
   }
@@ -50,12 +66,12 @@ export async function DELETE(_request: Request, { params }: Params) {
   }
   const { id } = await params;
   try {
-    const deleted = await deleteProduct(id);
-    if (!deleted) {
+    const result = await deleteProduct(id);
+    if (!result) {
       return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     }
     return NextResponse.json(
-      { ok: true },
+      { ok: true, products: result.products },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (err) {
@@ -65,7 +81,7 @@ export async function DELETE(_request: Request, { params }: Params) {
         error:
           err instanceof Error
             ? err.message
-            : "No se pudo eliminar. Revisa Blob (BLOB_STORE_ID) y vuelve a desplegar.",
+            : "No se pudo eliminar. Revisa Blob y vuelve a desplegar.",
       },
       { status: 500 },
     );
