@@ -53,7 +53,7 @@ Además de la landing, esta plantilla incluye:
 
 - Ruta: `/dashboard` (`src/app/dashboard/page.tsx` + `components/DashboardClient.tsx`)
 - Acciones: crear, editar, eliminar productos; marcar/quitar **promoción**; ocultar/mostrar en tienda (`active`)
-- Imagen: subir archivo desde móvil/PC (`POST /api/upload` → `public/uploads/`) o pegar URL
+- Imagen: subir archivo desde móvil/PC (se comprime bajo 8 MB en el navegador → `POST /api/upload` → `public/uploads/`) o pegar URL
 - Persistencia: `data/products.json` vía `lib/products.ts`
 - API: `GET/POST /api/products`, `GET/PATCH/DELETE /api/products/[id]`, `POST /api/upload`
 - Formulario responsive (móvil y desktop en dos columnas)

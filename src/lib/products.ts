@@ -80,7 +80,8 @@ export async function updateProduct(id: string, input: Partial<ProductInput>) {
 
 export async function deleteProduct(id: string) {
   const products = await readAll();
-  const next = products.filter((p) => p.id !== id);
+  const decoded = decodeURIComponent(id);
+  const next = products.filter((p) => p.id !== id && p.id !== decoded);
   if (next.length === products.length) return false;
   await writeAll(next);
   return true;

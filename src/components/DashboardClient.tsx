@@ -36,12 +36,12 @@ export default function DashboardClient() {
   const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
-    const me = await fetch("/api/auth/me");
+    const me = await fetch("/api/auth/me", { cache: "no-store" });
     if (!me.ok) {
       router.replace("/login");
       return;
     }
-    const res = await fetch("/api/products?all=1");
+    const res = await fetch("/api/products?all=1", { cache: "no-store" });
     if (!res.ok) {
       setError("No se pudieron cargar los productos");
       setReady(true);
@@ -85,8 +85,10 @@ export default function DashboardClient() {
     setUploading(true);
     setError("");
     try {
+      const { compressImageForUpload } = await import("@/lib/compress-image");
+      const compressed = await compressImageForUpload(file);
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", compressed);
       const res = await fetch("/api/upload", { method: "POST", body });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -94,8 +96,12 @@ export default function DashboardClient() {
         return;
       }
       setForm((prev) => ({ ...prev, image: data.url as string }));
-    } catch {
-      setError("Error al subir la imagen. Revisa la conexión.");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Error al subir la imagen. Revisa la conexión.";
+      setError(message);
     } finally {
       setUploading(false);
     }
@@ -126,6 +132,7 @@ export default function DashboardClient() {
           method: editingId ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
+          cache: "no-store",
         },
       );
       if (!res.ok) {
@@ -133,8 +140,16 @@ export default function DashboardClient() {
         setError(data.error || "No se pudo guardar");
         return;
       }
+      const saved = (await res.json()) as Product;
+      if (editingId) {
+        setProducts((prev) =>
+          prev.map((p) => (p.id === editingId ? saved : p)),
+        );
+      } else {
+        setProducts((prev) => [saved, ...prev]);
+      }
       resetForm();
-      await load();
+      router.refresh();
     } catch {
       setError("Error de conexión");
     } finally {
@@ -143,19 +158,50 @@ export default function DashboardClient() {
   }
 
   async function togglePromo(product: Product) {
-    await fetch(`/api/products/${product.id}`, {
+    const nextPromo = !product.promo;
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === product.id ? { ...p, promo: nextPromo } : p,
+      ),
+    );
+    const res = await fetch(`/api/products/${product.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ promo: !product.promo }),
+      body: JSON.stringify({ promo: nextPromo }),
+      cache: "no-store",
     });
-    await load();
+    if (!res.ok) {
+      setError("No se pudo actualizar la promoción");
+      await load();
+      return;
+    }
+    router.refresh();
   }
 
   async function removeProduct(id: string) {
     if (!confirm("¿Eliminar este producto del catálogo?")) return;
-    await fetch(`/api/products/${id}`, { method: "DELETE" });
+
+    const previous = products;
+    setProducts((prev) => prev.filter((p) => p.id !== id));
     if (editingId === id) resetForm();
-    await load();
+    setError("");
+
+    try {
+      const res = await fetch(`/api/products/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setProducts(previous);
+        setError(data.error || "No se pudo eliminar el producto");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setProducts(previous);
+      setError("Error de conexión al eliminar");
+    }
   }
 
   if (!ready) {
@@ -276,10 +322,10 @@ export default function DashboardClient() {
               )}
 
               <label className="btn-pill inline-flex cursor-pointer !normal-case tracking-normal">
-                {uploading ? "Subiendo…" : "Subir foto (galería o cámara)"}
+                {uploading ? "Comprimiendo y subiendo…" : "Subir foto (galería o cámara)"}
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif,image/*"
+                  accept="image/*"
                   className="sr-only"
                   disabled={uploading || saving}
                   onChange={(e) => {
@@ -290,8 +336,7 @@ export default function DashboardClient() {
                 />
               </label>
               <p className="text-xs text-muted">
-                En el móvil puedes elegir una foto de la galería o tomar una nueva.
-                JPG, PNG o WEBP · máx. 8 MB.
+                Puedes subir fotos grandes: se comprimen automáticamente a menos de 8 MB.
               </p>
 
               <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">

@@ -12,7 +12,11 @@ export async function GET(request: Request) {
     }
   }
   const products = await getProducts({ includeInactive: all });
-  return NextResponse.json(products);
+  return NextResponse.json(products, {
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+    },
+  });
 }
 
 export async function POST(request: Request) {
