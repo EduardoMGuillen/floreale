@@ -10,7 +10,8 @@ Esta guía describe el **formato**, **stack** y **archivos a tocar** cuando clon
 - **`next/font`** (una fuente display + una sans)
 - **`next/image`** para fotos (demo vía Unsplash en `lib/demo-images.ts`; sustituir en producción)
 - **Auth básica** (cookie firmada + credenciales en `.env.local`)
-- **Catálogo persistente** (`data/products.json` + API routes)
+- **Catálogo persistente** (`lib/blob-store.ts` → Vercel Blob en producción; `data/products.json` en local)
+- **Subida de imágenes** (`POST /api/upload` → Vercel Blob / `public/uploads` en local)
 - **Checkout por WhatsApp** (`lib/whatsapp.ts`)
 
 ## Prompt maestro (copiar en Cursor u otro asistente)
@@ -40,16 +41,38 @@ Requisitos técnicos:
 
 Además de la landing, esta plantilla incluye:
 
-### Persistencia en Vercel (importante)
+### Persistencia en Vercel (Blob) — obligatorio
 
-En Vercel **el disco no guarda cambios**. Para que funcionen crear/editar/eliminar productos y subir fotos:
+En Vercel **el sistema de archivos es efímero**: lo que escribas en `data/` o `public/uploads/` **no se guarda** entre requests. Por eso, sin Blob, parece que “no se eliminan” productos o “falla la subida de fotos”.
 
-1. En el proyecto de Vercel: **Storage → Create → Blob**
-2. Conéctalo al proyecto (genera `BLOB_READ_WRITE_TOKEN`)
-3. Asegúrate de que la variable exista en **Settings → Environment Variables** (Production + Preview)
-4. Redeploy
+Esta plantilla usa **Vercel Blob** (`@vercel/blob`) vía `lib/blob-store.ts`:
 
-Localmente, sin ese token, se usa `data/products.json` y `public/uploads/`.
+| Entorno | Productos | Imágenes subidas |
+|---------|-----------|------------------|
+| **Vercel** (con token) | Blob `roselune/products.json` | Blob `roselune/uploads/…` |
+| **Local** (sin token) | `data/products.json` | `public/uploads/` |
+
+#### Pasos en el dashboard de Vercel
+
+1. Abre el proyecto en [vercel.com](https://vercel.com).
+2. Ve a **Storage** → **Create** → **Blob**.
+3. Crea el store y **Connect** / enlázalo al proyecto (Production y Preview).
+4. Vercel crea la variable de entorno **`BLOB_READ_WRITE_TOKEN`**.
+5. Confirma en **Settings → Environment Variables** que `BLOB_READ_WRITE_TOKEN` esté en:
+   - Production  
+   - Preview (recomendado)  
+   - Development (opcional, si pruebas Blob en local)
+6. También configura el resto de variables (ver abajo).
+7. Haz un **Redeploy** (Deployments → … → Redeploy) para que el token cargue.
+
+Sin `BLOB_READ_WRITE_TOKEN` en Production, el admin puede mostrar errores al guardar, borrar o subir imágenes.
+
+#### Archivos clave
+
+- `src/lib/blob-store.ts` — lectura/escritura Blob + fallback local  
+- `src/lib/products.ts` — CRUD del catálogo  
+- `src/app/api/upload/route.ts` — subida de fotos (comprimidas en el navegador antes)  
+- `data/products.json` — semilla inicial (demo); en Vercel se copia a Blob la primera vez si aún no existe el archivo en Blob  
 
 ### Login administrativo
 
@@ -57,24 +80,25 @@ Localmente, sin ese token, se usa `data/products.json` y `public/uploads/`.
 - API: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
 - Cookie HTTP-only: `roselune_session` (nombre en `lib/constants.ts` → `AUTH_COOKIE`)
 - Firmado HMAC en `lib/auth.ts` con `AUTH_SECRET`
-- Credenciales: `ADMIN_USER` y `ADMIN_PASSWORD` en `.env.local`
+- Credenciales: `ADMIN_USER` y `ADMIN_PASSWORD` (`.env.local` / Vercel Env)
 - Middleware: protege `/dashboard` (`src/middleware.ts`)
 
 ### Panel / dashboard de productos
 
 - Ruta: `/dashboard` (`src/app/dashboard/page.tsx` + `components/DashboardClient.tsx`)
-- Acciones: crear, editar, eliminar productos; marcar/quitar **promoción**; ocultar/mostrar en tienda (`active`)
-- Imagen: se comprime en el navegador a data URL y se guarda en `data/products.json` (no depende de subir archivo al servidor)
-- Persistencia: `data/products.json` con escritura atómica + reintentos (vía `lib/products.ts`)
-- API: `GET/POST /api/products`, `GET/PATCH/DELETE /api/products/[id]`
-- Formulario responsive (móvil y desktop en dos columnas)
+- Acciones: crear, editar, eliminar (optimista), marcar/quitar **promoción**, ocultar/mostrar (`active`)
+- Imagen: comprimir en el cliente → `POST /api/upload` → URL pública (Blob en Vercel)
+- También se puede pegar una URL manual de imagen
+- API: `GET/POST /api/products`, `GET/PATCH/DELETE /api/products/[id]`, `POST /api/upload`
+- Formulario responsive (móvil y desktop)
 
 ### Compra por WhatsApp
 
 - Número: `NEXT_PUBLIC_WHATSAPP` (ej. `50493720140` → +504 9372-0140)
-- Al hacer clic en **Comprar**, se abre `wa.me` con mensaje que incluye nombre, precio y **enlace** `/producto/[id]`
+- Al hacer clic en **Comprar**, se abre `wa.me` con mensaje que incluye nombre y **enlace** `/producto/[id]`
 - Lógica en `lib/whatsapp.ts` → `whatsappBuyUrl()`
-- Página de detalle: `src/app/producto/[id]/page.tsx` (para que la tienda identifique el producto)
+- Página de detalle: `src/app/producto/[id]/page.tsx`
+- Listado completo: `/productos`
 
 ### Variables de entorno
 
@@ -83,10 +107,15 @@ ADMIN_USER=admin
 ADMIN_PASSWORD=roselune2024
 AUTH_SECRET=cambia-este-secreto
 NEXT_PUBLIC_WHATSAPP=50493720140
-NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
+NEXT_PUBLIC_SITE_URL=https://tu-dominio.vercel.app
+
+# Obligatorio en Vercel para CRUD de productos e imágenes:
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
 ```
 
-`NEXT_PUBLIC_SITE_URL` debe ser la URL pública en producción (sale en el mensaje de WhatsApp).
+- `NEXT_PUBLIC_SITE_URL` = URL pública (sale en el mensaje de WhatsApp).  
+- `BLOB_READ_WRITE_TOKEN` = token de Vercel Blob (no lo subas a Git; solo Env de Vercel / `.env.local`).  
+- Plantilla de ejemplo: `.env.example`
 
 ## Checklist al adaptar otro sector
 
@@ -105,12 +134,14 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 | Credenciales admin | `.env.local` (`ADMIN_USER`, `ADMIN_PASSWORD`) |
 | Login UI | `app/login/page.tsx` |
 | Panel CRUD productos | `components/DashboardClient.tsx`, `app/dashboard/page.tsx` |
-| Subida de imágenes | `app/api/upload/route.ts`, carpeta `public/uploads/` |
-| Persistencia catálogo | `data/products.json`, `lib/products.ts`, `app/api/products/**` |
+| Subida de imágenes | `app/api/upload/route.ts`, `lib/compress-image.ts`, `lib/blob-store.ts` |
+| Persistencia catálogo | `lib/blob-store.ts`, `lib/products.ts`, `app/api/products/**` (+ Blob en Vercel) |
+| Token Blob (Vercel) | Env `BLOB_READ_WRITE_TOKEN` (Storage → Blob) |
 | Auth / cookie | `lib/auth.ts`, `app/api/auth/**`, `middleware.ts` |
 | WhatsApp + mensaje de pedido | `lib/whatsapp.ts`, `lib/constants.ts` |
-| URL pública (enlaces en chat) | `NEXT_PUBLIC_SITE_URL` en `.env.local` |
+| URL pública (enlaces en chat) | `NEXT_PUBLIC_SITE_URL` |
 | Página producto (deep link) | `app/producto/[id]/page.tsx` |
+| Todos los productos | `app/productos/page.tsx` |
 
 ## Imágenes de demostración
 
