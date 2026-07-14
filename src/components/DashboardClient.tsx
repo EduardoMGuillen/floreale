@@ -64,17 +64,13 @@ export default function DashboardClient() {
             return true;
           }
         } catch {
-          // retry
+          // retry — never treat a failed read as “missing catalog”
         }
         await new Promise((r) => setTimeout(r, 350 + attempt * 150));
       }
-      try {
-        const list = await fetchAllProducts();
-        setProducts(list);
-        router.refresh();
-      } catch {
-        // ignore
-      }
+      // Do NOT overwrite local list with a failed / stale fetch
+      // (that used to re-introduce deleted seed products)
+      router.refresh();
       return false;
     },
     [fetchAllProducts, router],

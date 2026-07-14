@@ -1,4 +1,9 @@
-import { put, head, BlobAccessError } from "@vercel/blob";
+import {
+  put,
+  head,
+  BlobAccessError,
+  BlobNotFoundError,
+} from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import type { Product } from "./types";
@@ -21,11 +26,9 @@ function blobAccess(): "public" | "private" {
 }
 
 function blobAuthOptions(): { token?: string; storeId?: string } {
-  // Prefer static RW token — most reliable
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     return { token: process.env.BLOB_READ_WRITE_TOKEN };
   }
-  // OIDC on Vercel: pair store id (VERCEL_OIDC_TOKEN is injected at runtime)
   if (process.env.BLOB_STORE_ID) {
     return { storeId: process.env.BLOB_STORE_ID };
   }
@@ -35,10 +38,9 @@ function blobAuthOptions(): { token?: string; storeId?: string } {
 function blobHelpError(cause?: unknown) {
   const base =
     "Vercel Blob rechazó el acceso. Haz esto: " +
-    "1) Storage → tu Blob → debe ser Public (si es Private, créalo de nuevo como Public). " +
-    "2) En Environment Variables debe existir BLOB_READ_WRITE_TOKEN " +
-    "(mira Storage → Blob → pestaña del store / .env.local y cópialo). " +
-    "3) Redeploy. BLOB_STORE_ID y BLOB_WEBHOOK_PUBLIC_KEY solos no siempre bastan.";
+    "1) Storage → tu Blob → debe ser Public. " +
+    "2) Agrega BLOB_READ_WRITE_TOKEN en Environment Variables. " +
+    "3) Redeploy.";
   if (cause instanceof Error && cause.message) {
     return `${base} Detalle: ${cause.message}`;
   }
@@ -82,17 +84,43 @@ async function writeToLocal(products: Product[]) {
   await fs.writeFile(LEGACY_PATH, payload, "utf8");
 }
 
-async function readFromBlob(): Promise<Product[] | null> {
+type BlobRead =
+  | { status: "ok"; products: Product[] }
+  | { status: "missing" };
+
+/**
+ * Read catalog from Blob.
+ * - ok + products (may be empty []) = real catalog, never re-seed
+ * - missing = file never created → allow one-time seed
+ * - throws on access/network errors (do NOT seed)
+ */
+async function readFromBlob(): Promise<BlobRead> {
   return withBlobErrors(async () => {
     try {
       const meta = await head(PRODUCTS_BLOB_KEY, blobAuthOptions());
       const res = await fetch(meta.url, { cache: "no-store" });
-      if (!res.ok) return null;
+      if (!res.ok) {
+        throw new Error(`No se pudo leer el catálogo (${res.status})`);
+      }
       const parsed = (await res.json()) as Product[];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      // Not found yet
-      return null;
+      return {
+        status: "ok",
+        products: Array.isArray(parsed) ? parsed : [],
+      };
+    } catch (err) {
+      if (err instanceof BlobNotFoundError) {
+        return { status: "missing" };
+      }
+      // Some SDK versions throw generic errors for 404
+      const msg = err instanceof Error ? err.message.toLowerCase() : "";
+      if (
+        msg.includes("not found") ||
+        msg.includes("does not exist") ||
+        msg.includes("404")
+      ) {
+        return { status: "missing" };
+      }
+      throw err;
     }
   });
 }
@@ -113,8 +141,12 @@ async function writeToBlob(products: Product[]) {
 /** Read catalog — Vercel Blob in production, local JSON in development. */
 export async function loadProducts(): Promise<Product[]> {
   if (hasBlobStore()) {
-    const fromBlob = await readFromBlob();
-    if (fromBlob) return fromBlob;
+    const result = await readFromBlob();
+    if (result.status === "ok") {
+      // Empty catalog is valid (user deleted everything) — NEVER re-seed
+      return result.products;
+    }
+    // Truly first run: seed once from demo JSON
     const seed = await readSeed();
     await writeToBlob(seed);
     return seed;
