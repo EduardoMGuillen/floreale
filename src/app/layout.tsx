@@ -41,16 +41,20 @@ export const metadata: Metadata = {
   openGraph: {
     title,
     description,
+    url: SITE_URL,
     siteName: BRAND,
     images: [
       {
         url: "/og.png",
+        secureUrl: "/og.png",
+        type: "image/png",
         width: 1200,
         height: 630,
         alt: `${BRAND} ${BRAND_TAGLINE}`,
       },
       {
         url: "/logo.png",
+        type: "image/png",
         width: 648,
         height: 268,
         alt: `${BRAND} logo`,
@@ -63,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/og.png", "/logo.png"],
+    images: ["/og.png"],
   },
 };
 

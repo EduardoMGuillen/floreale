@@ -2,8 +2,30 @@ export const BRAND = "RoseLune";
 export const BRAND_TAGLINE = "Floristería";
 export const WHATSAPP_NUMBER =
   process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || "50493720140";
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+function resolveSiteUrl() {
+  const explicit = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
+  const onVercel = process.env.VERCEL === "1";
+  const isLocalhost = !explicit || /localhost|127\.0\.0\.1/i.test(explicit);
+
+  // En Vercel, ignora localhost (suele venir copiado del .env de desarrollo).
+  if (explicit && !(onVercel && isLocalhost)) {
+    return explicit;
+  }
+
+  const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercelProd) {
+    return `https://${vercelProd.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+  }
+
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) {
+    return `https://${vercelUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+  }
+
+  return explicit || "http://localhost:3000";
+}
+
+export const SITE_URL = resolveSiteUrl();
 export const NEXUS_URL = "https://www.nexusglobalsuministros.com/";
 export const AUTH_COOKIE = "roselune_session";
 
