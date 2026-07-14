@@ -42,21 +42,58 @@ export default function DashboardClient() {
 
   const locked = Boolean(busy) || uploading;
 
+  const fetchAllProducts = useCallback(async () => {
+    const res = await fetch("/api/products?all=1", { cache: "no-store" });
+    if (!res.ok) throw new Error("No se pudo verificar el catálogo");
+    return (await res.json()) as Product[];
+  }, []);
+
+  /** Keep overlay until Blob/API actually reflects the expected catalog state. */
+  const waitUntilReflected = useCallback(
+    async (
+      assert: (list: Product[]) => boolean,
+      confirmingLabel: string,
+    ) => {
+      setBusy({ label: confirmingLabel });
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          const list = await fetchAllProducts();
+          if (assert(list)) {
+            setProducts(list);
+            router.refresh();
+            return true;
+          }
+        } catch {
+          // retry
+        }
+        await new Promise((r) => setTimeout(r, 350 + attempt * 150));
+      }
+      try {
+        const list = await fetchAllProducts();
+        setProducts(list);
+        router.refresh();
+      } catch {
+        // ignore
+      }
+      return false;
+    },
+    [fetchAllProducts, router],
+  );
+
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me", { cache: "no-store" });
     if (!me.ok) {
       router.replace("/login");
       return;
     }
-    const res = await fetch("/api/products?all=1", { cache: "no-store" });
-    if (!res.ok) {
+    try {
+      const list = await fetchAllProducts();
+      setProducts(list);
+    } catch {
       setError("No se pudieron cargar los productos");
-      setReady(true);
-      return;
     }
-    setProducts(await res.json());
     setReady(true);
-  }, [router]);
+  }, [router, fetchAllProducts]);
 
   useEffect(() => {
     void load();
@@ -135,10 +172,12 @@ export default function DashboardClient() {
       setError("Agrega una imagen (subida o URL)");
       return;
     }
+    const wasEditing = Boolean(editingId);
+    const editId = editingId;
     setBusy({
-      label: editingId
-        ? "Guardando cambios… Espera a que termine."
-        : "Creando producto… Espera a que termine (puede tardar unos segundos).",
+      label: wasEditing
+        ? "Guardando producto… No recargues."
+        : "Creando producto… No recargues (puede tardar unos segundos).",
     });
     setError("");
     const payload = {
@@ -153,9 +192,9 @@ export default function DashboardClient() {
 
     try {
       const res = await fetch(
-        editingId ? `/api/products/${editingId}` : "/api/products",
+        editId ? `/api/products/${editId}` : "/api/products",
         {
-          method: editingId ? "PATCH" : "POST",
+          method: editId ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
           cache: "no-store",
@@ -167,15 +206,28 @@ export default function DashboardClient() {
         return;
       }
       const saved = (await res.json()) as Product;
-      if (editingId) {
-        setProducts((prev) =>
-          prev.map((p) => (p.id === editingId ? saved : p)),
+      setBusy({
+        label: "Confirmando en el servidor… Espera a que se refleje.",
+      });
+      const ok = await waitUntilReflected(
+        (list) => {
+          const found = list.find((p) => p.id === saved.id);
+          if (!found) return false;
+          return (
+            found.name === saved.name &&
+            found.active === saved.active &&
+            found.promo === saved.promo &&
+            found.image === saved.image
+          );
+        },
+        "Confirmando creación/guardado… Aún no recargues.",
+      );
+      if (!ok) {
+        setError(
+          "Se guardó, pero tardó en confirmarse. Revisa el catálogo antes de volver a crear.",
         );
-      } else {
-        setProducts((prev) => [saved, ...prev]);
       }
       resetForm();
-      router.refresh();
     } catch {
       setError("Error de conexión");
     } finally {
@@ -189,8 +241,8 @@ export default function DashboardClient() {
     setPendingId(product.id);
     setBusy({
       label: nextPromo
-        ? "Marcando promoción… Espera."
-        : "Quitando promoción… Espera.",
+        ? "Marcando promoción… No recargues."
+        : "Quitando promoción… No recargues.",
     });
     const previous = products;
     setProducts((prev) =>
@@ -210,7 +262,13 @@ export default function DashboardClient() {
         setError("No se pudo actualizar la promoción");
         return;
       }
-      router.refresh();
+      const ok = await waitUntilReflected(
+        (list) => list.some((p) => p.id === product.id && p.promo === nextPromo),
+        "Confirmando promoción… Espera.",
+      );
+      if (!ok) {
+        setError("El cambio de promo tarda en reflejarse. Revisa antes de repetir.");
+      }
     } catch {
       setProducts(previous);
       setError("Error de conexión");
@@ -226,8 +284,8 @@ export default function DashboardClient() {
     setPendingId(product.id);
     setBusy({
       label: nextActive
-        ? "Mostrando en la tienda… Espera."
-        : "Ocultando de la tienda… Espera.",
+        ? "Mostrando en la tienda… No recargues."
+        : "Ocultando de la tienda… No recargues.",
     });
     const previous = products;
     setProducts((prev) =>
@@ -247,7 +305,18 @@ export default function DashboardClient() {
         setError("No se pudo cambiar la visibilidad");
         return;
       }
-      router.refresh();
+      const ok = await waitUntilReflected(
+        (list) =>
+          list.some((p) => p.id === product.id && p.active === nextActive),
+        nextActive
+          ? "Confirmando que ya está visible… Espera."
+          : "Confirmando que ya está oculto… Espera.",
+      );
+      if (!ok) {
+        setError(
+          "La visibilidad tarda en reflejarse. Revisa la tienda antes de repetir.",
+        );
+      }
     } catch {
       setProducts(previous);
       setError("Error de conexión");
@@ -263,7 +332,7 @@ export default function DashboardClient() {
 
     setPendingId(id);
     setBusy({
-      label: "Eliminando producto… Espera a que termine (no recargues).",
+      label: "Eliminando producto… No recargues hasta que termine.",
     });
     const previous = products;
     setProducts((prev) => prev.filter((p) => p.id !== id));
@@ -281,7 +350,15 @@ export default function DashboardClient() {
         setError(data.error || "No se pudo eliminar el producto");
         return;
       }
-      router.refresh();
+      const ok = await waitUntilReflected(
+        (list) => !list.some((p) => p.id === id),
+        "Confirmando eliminación… Espera a que desaparezca del catálogo.",
+      );
+      if (!ok) {
+        setError(
+          "La eliminación tarda en confirmarse. Revisa el catálogo antes de volver a crear el mismo producto.",
+        );
+      }
     } catch {
       setProducts(previous);
       setError("Error de conexión al eliminar");
@@ -313,10 +390,10 @@ export default function DashboardClient() {
         >
           <div className="w-full max-w-sm border border-line bg-paper px-6 py-8 text-center shadow-lg">
             <span className="mx-auto mb-5 block h-10 w-10 animate-spin rounded-full border-2 border-brand border-t-transparent" />
-            <p className="font-display text-xl text-ink">Trabajando…</p>
+            <p className="font-display text-xl text-ink">Espera…</p>
             <p className="mt-2 text-sm text-muted">{busy.label}</p>
             <p className="mt-4 text-[11px] uppercase tracking-[0.14em] text-muted">
-              No recargues ni vuelvas a pulsar
+              El loading cierra solo cuando el cambio ya está confirmado
             </p>
           </div>
         </div>
