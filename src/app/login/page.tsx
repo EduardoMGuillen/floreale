@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BRAND } from "@/lib/constants";
@@ -37,28 +38,33 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="botanical-wash flex min-h-[100svh] items-center justify-center px-4 py-12">
+    <div className="flex min-h-[100svh] items-center justify-center bg-soft px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link
-            href="/"
-            className="font-display text-3xl text-leaf-deep transition hover:text-leaf"
-          >
-            {BRAND}
+        <div className="mb-10 flex flex-col items-center text-center">
+          <Link href="/" aria-label={BRAND}>
+            <Image
+              src="/logo.jpg"
+              alt={BRAND}
+              width={200}
+              height={64}
+              className="h-14 w-auto object-contain"
+            />
           </Link>
-          <p className="mt-2 text-sm text-muted">Acceso al panel de productos</p>
+          <p className="mt-4 text-[11px] uppercase tracking-[0.2em] text-muted">
+            Acceso administración
+          </p>
         </div>
 
         <form
           onSubmit={onSubmit}
-          className="border border-leaf/15 bg-paper/80 p-6 shadow-sm backdrop-blur-sm sm:p-8"
+          className="border border-line bg-paper px-6 py-8 sm:px-8"
         >
-          <h1 className="font-display text-2xl text-leaf-deep">Iniciar sesión</h1>
+          <h1 className="font-display text-2xl text-ink">Iniciar sesión</h1>
           <p className="mt-1 text-sm text-muted">
             Administra arreglos, precios y promociones.
           </p>
 
-          <label className="mt-6 block text-sm text-ink">
+          <label className="mt-8 block text-[11px] uppercase tracking-[0.14em] text-muted">
             Usuario
             <input
               type="text"
@@ -66,11 +72,11 @@ export default function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="mt-1.5 w-full rounded-md border border-leaf/20 bg-white px-3 py-2.5 text-sm outline-none ring-leaf/30 focus:ring-2 dark:bg-leaf-deep/40"
+              className="mt-2 w-full border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus:border-brand"
             />
           </label>
 
-          <label className="mt-4 block text-sm text-ink">
+          <label className="mt-5 block text-[11px] uppercase tracking-[0.14em] text-muted">
             Contraseña
             <input
               type="password"
@@ -78,12 +84,12 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1.5 w-full rounded-md border border-leaf/20 bg-white px-3 py-2.5 text-sm outline-none ring-leaf/30 focus:ring-2 dark:bg-leaf-deep/40"
+              className="mt-2 w-full border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus:border-brand"
             />
           </label>
 
           {error && (
-            <p className="mt-4 text-sm text-petal" role="alert">
+            <p className="mt-4 text-sm text-promo" role="alert">
               {error}
             </p>
           )}
@@ -91,14 +97,14 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 w-full rounded-md bg-leaf py-2.5 text-sm font-medium text-white transition hover:bg-leaf-deep disabled:opacity-60"
+            className="btn-pill mt-8 w-full disabled:opacity-60"
           >
             {loading ? "Entrando…" : "Entrar"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-muted">
-          <Link href="/" className="hover:text-leaf">
+        <p className="mt-8 text-center text-sm text-muted">
+          <Link href="/" className="hover:text-brand">
             ← Volver a la tienda
           </Link>
         </p>

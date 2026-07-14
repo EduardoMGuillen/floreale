@@ -3,7 +3,7 @@
  * Licencia: https://unsplash.com/license
  */
 export const demoImages = {
-  hero: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1600&q=80",
+  hero: "https://images.unsplash.com/photo-1496062031456-07b8f162a322?w=1600&q=80",
   about: "https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=1200&q=80",
   bouquet1: "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=800&q=80",
   bouquet2: "https://images.unsplash.com/photo-1519378058459-4fad1a5b0175?w=800&q=80",

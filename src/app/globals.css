@@ -1,16 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --leaf: #2f5d45;
-  --leaf-deep: #1e3d2e;
-  --sage: #6f8f78;
-  --mist: #eef3ef;
-  --petal: #c47a86;
-  --petal-soft: #f3e4e7;
-  --ink: #1c2a22;
-  --muted: #5a6b60;
-  --paper: #f8faf8;
-  --gold: #b0895b;
+  /* Paleta: blanco, rosado, negro, gris */
+  --paper: #ffffff;
+  --soft: #f7f7f7;
+  --blush: #f7e9ec;
+  --blush-deep: #efd5db;
+  --pink: #d4a0ab;
+  --pink-deep: #c08490;
+  --brand: #d4a0ab;
+  --brand-deep: #c08490;
+  --ink: #111111;
+  --muted: #8a8a8a;
+  --line: #e6e6e6;
+  --promo: #d48496;
   --background: var(--paper);
   --foreground: var(--ink);
 }
@@ -18,30 +21,20 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-leaf: var(--leaf);
-  --color-leaf-deep: var(--leaf-deep);
-  --color-sage: var(--sage);
-  --color-mist: var(--mist);
-  --color-petal: var(--petal);
-  --color-petal-soft: var(--petal-soft);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-pink: var(--pink);
+  --color-pink-deep: var(--pink-deep);
+  --color-blush: var(--blush);
+  --color-blush-deep: var(--blush-deep);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
+  --color-line: var(--line);
   --color-paper: var(--paper);
-  --color-gold: var(--gold);
+  --color-soft: var(--soft);
+  --color-promo: var(--promo);
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #121a15;
-    --foreground: #e8efe9;
-    --mist: #1a2620;
-    --paper: #121a15;
-    --ink: #e8efe9;
-    --muted: #a3b5aa;
-    --petal-soft: #2a2224;
-  }
 }
 
 html {
@@ -55,21 +48,41 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
 }
 
-.botanical-wash {
-  background:
-    radial-gradient(ellipse 80% 55% at 15% 10%, rgba(196, 122, 134, 0.14), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 0%, rgba(111, 143, 120, 0.22), transparent 50%),
-    linear-gradient(180deg, #f4f8f5 0%, #eef3ef 45%, #f8faf8 100%);
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  border-radius: 9999px;
+  padding: 0.7rem 1.75rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  .botanical-wash {
-    background:
-      radial-gradient(ellipse 80% 55% at 15% 10%, rgba(196, 122, 134, 0.12), transparent 55%),
-      radial-gradient(ellipse 70% 50% at 90% 0%, rgba(47, 93, 69, 0.35), transparent 50%),
-      linear-gradient(180deg, #101712 0%, #121a15 100%);
-  }
+.btn-pill:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.btn-pill-light {
+  border-color: rgba(255, 255, 255, 0.9);
+  color: #fff;
+}
+
+.btn-pill-light:hover {
+  background: #fff;
+  color: var(--ink);
+}
+
+.hairline {
+  border-color: var(--line);
 }

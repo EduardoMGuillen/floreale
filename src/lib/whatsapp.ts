@@ -11,20 +11,11 @@ export function whatsappBuyUrl(product: {
   price?: number;
 }) {
   const link = productPageUrl(product.id);
-  const priceLine =
-    typeof product.price === "number"
-      ? `\nPrecio de referencia: L ${product.price.toLocaleString("es-HN")}`
-      : "";
-  const message = `Hola ${BRAND} 🌿
+  const message = `Hola, me interesa el producto: ${product.name}
 
-Me interesa solicitar este producto:
+Link: ${link}
 
-*${product.name}*${priceLine}
-
-Enlace del producto:
-${link}
-
-¿Me pueden confirmar disponibilidad y forma de entrega?`;
+— Enviado desde ${BRAND}`;
 
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }

@@ -5,7 +5,7 @@ import { AUTH_COOKIE } from "./constants";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function secret() {
-  return process.env.AUTH_SECRET || "floreale-dev-secret";
+  return process.env.AUTH_SECRET || "roselune-dev-secret";
 }
 
 function sign(value: string) {
@@ -36,7 +36,7 @@ export function verifySessionToken(token: string | undefined) {
 
 export function validateCredentials(username: string, password: string) {
   const user = process.env.ADMIN_USER || "admin";
-  const pass = process.env.ADMIN_PASSWORD || "floreale2024";
+  const pass = process.env.ADMIN_PASSWORD || "roselune2024";
   return username === user && password === pass;
 }
 

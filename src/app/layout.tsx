@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { Cormorant_Garamond, Montserrat } from "next/font/google";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -8,16 +8,16 @@ const display = Cormorant_Garamond({
   weight: ["400", "500", "600", "700"],
 });
 
-const sans = Outfit({
+const sans = Montserrat({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "Floreale | Floristería",
+  title: "RoseLune | Floristería",
   description:
-    "Floreale — ramos y arreglos florales frescos. Pide por WhatsApp y recibe el detalle perfecto.",
+    "RoseLune — ramos y arreglos florales elegantes. Catálogo online y pedidos por WhatsApp.",
 };
 
 export default function RootLayout({
@@ -27,7 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${display.variable} ${sans.variable} h-full`}>
-      <body className="min-h-full font-sans antialiased">{children}</body>
+      <body className="min-h-full bg-paper font-sans text-ink antialiased">
+        {children}
+      </body>
     </html>
   );
 }

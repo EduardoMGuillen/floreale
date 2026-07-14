@@ -1,78 +1,98 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { BRAND } from "@/lib/constants";
+import { BRAND, NAV_LINKS } from "@/lib/constants";
 
-const links = [
-  { href: "#arreglos", label: "Arreglos" },
-  { href: "#sobre", label: "Sobre nosotros" },
-  { href: "#testimonios", label: "Testimonios" },
-  { href: "#contacto", label: "Contacto" },
-];
+function BagIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      className={className}
+      aria-hidden
+    >
+      <path d="M6 8h12l-1 12H7L6 8Z" />
+      <path d="M9 8a3 3 0 0 1 6 0" />
+    </svg>
+  );
+}
 
-export default function Header() {
+export default function Header({ blush = false }: { blush?: boolean }) {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const left = NAV_LINKS.slice(0, 2);
+  const right = NAV_LINKS.slice(2);
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-leaf/10 bg-paper/90 shadow-sm backdrop-blur-md"
-          : "bg-transparent"
+      className={`sticky top-0 z-50 border-b border-line/80 ${
+        blush ? "bg-blush/90 backdrop-blur-md" : "bg-paper/95 backdrop-blur-md"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:h-18 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="font-display text-2xl tracking-tight text-leaf-deep sm:text-[1.7rem]"
-        >
-          {BRAND}
-        </Link>
-
-        <nav className="hidden items-center gap-8 md:flex">
-          {links.map((link) => (
-            <a
+      <div className="mx-auto grid h-[4.5rem] max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:h-[5.25rem] sm:px-6 lg:px-8">
+        <nav className="hidden items-center gap-7 md:flex">
+          {left.map((link) => (
+            <Link
               key={link.href}
               href={link.href}
-              className="text-sm text-muted transition hover:text-leaf"
+              className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink/75 transition hover:text-brand"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
-          <a
-            href="#arreglos"
-            className="rounded-md bg-leaf px-4 py-2 text-sm font-medium text-white transition hover:bg-leaf-deep"
-          >
-            Ver arreglos
-          </a>
         </nav>
+
+        <Link
+          href="/"
+          className="col-start-2 flex items-center justify-center"
+          aria-label={BRAND}
+        >
+          <Image
+            src="/logo.jpg"
+            alt={BRAND}
+            width={220}
+            height={64}
+            className="h-11 w-auto object-contain sm:h-14"
+            priority
+          />
+        </Link>
+
+        <div className="hidden items-center justify-end gap-7 md:flex">
+          {right.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink/75 transition hover:text-brand"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link
+            href="/#catalogo"
+            aria-label="Ver catálogo"
+            className="text-ink/80 transition hover:text-brand"
+          >
+            <BagIcon />
+          </Link>
+        </div>
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-leaf md:hidden"
+          className="col-start-3 justify-self-end text-ink md:hidden"
           aria-label={open ? "Cerrar menú" : "Abrir menú"}
           onClick={() => setOpen((v) => !v)}
         >
-          <span className="sr-only">Menú</span>
           <div className="flex w-5 flex-col gap-1.5">
             <span
-              className={`h-0.5 w-full bg-current transition ${open ? "translate-y-2 rotate-45" : ""}`}
+              className={`h-px w-full bg-current transition ${open ? "translate-y-[7px] rotate-45" : ""}`}
             />
+            <span className={`h-px w-full bg-current transition ${open ? "opacity-0" : ""}`} />
             <span
-              className={`h-0.5 w-full bg-current transition ${open ? "opacity-0" : ""}`}
-            />
-            <span
-              className={`h-0.5 w-full bg-current transition ${open ? "-translate-y-2 -rotate-45" : ""}`}
+              className={`h-px w-full bg-current transition ${open ? "-translate-y-[7px] -rotate-45" : ""}`}
             />
           </div>
         </button>
@@ -84,26 +104,26 @@ export default function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-b border-leaf/10 bg-paper/95 backdrop-blur-md md:hidden"
+            className="border-t border-line bg-paper md:hidden"
           >
-            <div className="flex flex-col gap-1 px-4 py-4">
-              {links.map((link) => (
-                <a
+            <div className="flex flex-col px-4 py-3">
+              {NAV_LINKS.map((link) => (
+                <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-md px-3 py-2.5 text-sm text-ink hover:bg-mist"
+                  className="px-2 py-3 text-[11px] font-medium uppercase tracking-[0.16em] text-ink/80"
                   onClick={() => setOpen(false)}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
-              <a
-                href="#arreglos"
-                className="mt-2 rounded-md bg-leaf px-3 py-2.5 text-center text-sm font-medium text-white"
+              <Link
+                href="/#sobre"
+                className="px-2 py-3 text-[11px] font-medium uppercase tracking-[0.16em] text-ink/80"
                 onClick={() => setOpen(false)}
               >
-                Ver arreglos
-              </a>
+                Sobre nosotros
+              </Link>
             </div>
           </motion.nav>
         )}

@@ -1,6 +1,6 @@
 # Guía para replicar esta plantilla en otro proyecto o sector
 
-Esta guía describe el **formato**, **stack** y **archivos a tocar** cuando clones el patrón de esta landing (Next.js + React + Tailwind + Framer Motion) para otro cliente o vertical. Incluye la variante **tienda / catálogo** con login administrativo y panel de productos (caso Floreale).
+Esta guía describe el **formato**, **stack** y **archivos a tocar** cuando clones el patrón de esta landing (Next.js + React + Tailwind + Framer Motion) para otro cliente o vertical. Incluye la variante **tienda / catálogo** con login administrativo y panel de productos (caso RoseLune).
 
 ## Stack
 
@@ -36,7 +36,7 @@ Requisitos técnicos:
 - Componentes en /components, página principal ensambla secciones.
 ```
 
-## Variante Floreale (floristería / catálogo + WhatsApp)
+## Variante RoseLune (floristería / catálogo + WhatsApp)
 
 Además de la landing, esta plantilla incluye:
 
@@ -44,7 +44,7 @@ Además de la landing, esta plantilla incluye:
 
 - Ruta pública: `/login` (`src/app/login/page.tsx`)
 - API: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
-- Cookie HTTP-only: `floreale_session` (nombre en `lib/constants.ts` → `AUTH_COOKIE`)
+- Cookie HTTP-only: `roselune_session` (nombre en `lib/constants.ts` → `AUTH_COOKIE`)
 - Firmado HMAC en `lib/auth.ts` con `AUTH_SECRET`
 - Credenciales: `ADMIN_USER` y `ADMIN_PASSWORD` en `.env.local`
 - Middleware: protege `/dashboard` (`src/middleware.ts`)
@@ -68,7 +68,7 @@ Además de la landing, esta plantilla incluye:
 
 ```
 ADMIN_USER=admin
-ADMIN_PASSWORD=floreale2024
+ADMIN_PASSWORD=roselune2024
 AUTH_SECRET=cambia-este-secreto
 NEXT_PUBLIC_WHATSAPP=50493720140
 NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
@@ -81,7 +81,7 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 | Qué cambiar | Archivo habitual |
 |-------------|------------------|
 | Título, descripción SEO | `app/layout.tsx` |
-| Paleta de marca | `app/globals.css` (`:root` + `@theme`) |
+| Paleta de marca (blanco / rosado / negro / gris) | `app/globals.css` (`:root` + `@theme`) |
 | Navegación y CTA cabecera | `components/Header.tsx` |
 | Titular, métricas, hero visual | `components/Hero.tsx` |
 | Listado de servicios / catálogo | `components/Services.tsx` o `components/Products.tsx` |
@@ -105,8 +105,7 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 - Productos demo también en `data/products.json` (Unsplash).
 - Licencia Unsplash: <https://unsplash.com/license>
 - Antes de producción: sustituir por fotos del cliente o stock con licencia explícita.
-- **Logo Floreale:** pendiente; cuando exista, colocarlo en `public/` y usarlo en `Header.tsx` / `Footer.tsx`.
-
+- **Logo RoseLune:** `public/logo.jpg` — usado en `Header.tsx`, `Footer.tsx`, login y dashboard.
 ## Powered by Nexus Global
 
 En el footer del template hay un enlace **Powered by Nexus Global** hacia:

@@ -22,7 +22,10 @@ const emptyForm = {
   active: true,
 };
 
-export default function DashboardPage() {
+const inputClass =
+  "mt-2 w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-brand";
+
+export default function DashboardClient() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -131,33 +134,38 @@ export default function DashboardPage() {
 
   if (!ready) {
     return (
-      <div className="botanical-wash flex min-h-[100svh] items-center justify-center text-muted">
+      <div className="flex min-h-[100svh] items-center justify-center bg-soft text-muted">
         Cargando panel…
       </div>
     );
   }
 
   return (
-    <div className="botanical-wash min-h-[100svh]">
-      <header className="border-b border-leaf/10 bg-paper/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
-          <div>
-            <Link href="/" className="font-display text-2xl text-leaf-deep">
-              {BRAND}
+    <div className="min-h-[100svh] bg-soft">
+      <header className="border-b border-line bg-paper">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <Link href="/" aria-label={BRAND}>
+              <Image
+                src="/logo.jpg"
+                alt={BRAND}
+                width={160}
+                height={48}
+                className="h-10 w-auto object-contain"
+              />
             </Link>
-            <p className="text-sm text-muted">Panel de productos</p>
+            <p className="hidden text-[11px] uppercase tracking-[0.16em] text-muted sm:block">
+              Panel de productos
+            </p>
           </div>
           <div className="flex gap-2">
-            <Link
-              href="/"
-              className="rounded-md border border-leaf/20 px-3 py-2 text-sm text-leaf hover:bg-mist"
-            >
+            <Link href="/" className="btn-pill !px-4 !py-2">
               Ver tienda
             </Link>
             <button
               type="button"
               onClick={() => void logout()}
-              className="rounded-md bg-leaf px-3 py-2 text-sm font-medium text-white hover:bg-leaf-deep"
+              className="btn-pill !px-4 !py-2"
             >
               Salir
             </button>
@@ -166,8 +174,8 @@ export default function DashboardPage() {
       </header>
 
       <main className="mx-auto grid max-w-6xl gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:px-8 lg:py-12">
-        <section className="border border-leaf/15 bg-paper/80 p-5 sm:p-6">
-          <h1 className="font-display text-2xl text-leaf-deep">
+        <section className="border border-line bg-paper p-5 sm:p-6">
+          <h1 className="font-display text-2xl text-ink">
             {editingId ? "Editar producto" : "Agregar producto"}
           </h1>
           <p className="mt-1 text-sm text-muted">
@@ -175,16 +183,16 @@ export default function DashboardPage() {
           </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
-            <label className="block text-sm">
+            <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
               Nombre
               <input
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="mt-1.5 w-full rounded-md border border-leaf/20 bg-white px-3 py-2 text-sm outline-none ring-leaf/30 focus:ring-2 dark:bg-leaf-deep/30"
+                className={inputClass}
               />
             </label>
-            <label className="block text-sm">
+            <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
               Descripción
               <textarea
                 required
@@ -193,11 +201,11 @@ export default function DashboardPage() {
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
-                className="mt-1.5 w-full rounded-md border border-leaf/20 bg-white px-3 py-2 text-sm outline-none ring-leaf/30 focus:ring-2 dark:bg-leaf-deep/30"
+                className={inputClass}
               />
             </label>
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm">
+              <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
                 Precio (L)
                 <input
                   required
@@ -206,10 +214,10 @@ export default function DashboardPage() {
                   step="1"
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  className="mt-1.5 w-full rounded-md border border-leaf/20 bg-white px-3 py-2 text-sm outline-none ring-leaf/30 focus:ring-2 dark:bg-leaf-deep/30"
+                  className={inputClass}
                 />
               </label>
-              <label className="block text-sm">
+              <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
                 Categoría
                 <input
                   required
@@ -217,11 +225,11 @@ export default function DashboardPage() {
                   onChange={(e) =>
                     setForm({ ...form, category: e.target.value })
                   }
-                  className="mt-1.5 w-full rounded-md border border-leaf/20 bg-white px-3 py-2 text-sm outline-none ring-leaf/30 focus:ring-2 dark:bg-leaf-deep/30"
+                  className={inputClass}
                 />
               </label>
             </div>
-            <label className="block text-sm">
+            <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
               URL de imagen
               <input
                 required
@@ -229,36 +237,36 @@ export default function DashboardPage() {
                 value={form.image}
                 onChange={(e) => setForm({ ...form, image: e.target.value })}
                 placeholder="https://..."
-                className="mt-1.5 w-full rounded-md border border-leaf/20 bg-white px-3 py-2 text-sm outline-none ring-leaf/30 focus:ring-2 dark:bg-leaf-deep/30"
+                className={inputClass}
               />
             </label>
-            <div className="flex flex-wrap gap-4 pt-1">
-              <label className="flex items-center gap-2 text-sm">
+            <div className="flex flex-wrap gap-4 pt-1 text-sm">
+              <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={form.promo}
                   onChange={(e) =>
                     setForm({ ...form, promo: e.target.checked })
                   }
-                  className="accent-petal"
+                  className="accent-promo"
                 />
                 Marcar como promoción
               </label>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={form.active}
                   onChange={(e) =>
                     setForm({ ...form, active: e.target.checked })
                   }
-                  className="accent-leaf"
+                  className="accent-brand"
                 />
                 Visible en la tienda
               </label>
             </div>
 
             {error && (
-              <p className="text-sm text-petal" role="alert">
+              <p className="text-sm text-promo" role="alert">
                 {error}
               </p>
             )}
@@ -267,7 +275,7 @@ export default function DashboardPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-md bg-leaf px-4 py-2.5 text-sm font-medium text-white hover:bg-leaf-deep disabled:opacity-60"
+                className="btn-pill disabled:opacity-60"
               >
                 {saving
                   ? "Guardando…"
@@ -279,7 +287,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="rounded-md border border-leaf/20 px-4 py-2.5 text-sm text-muted hover:bg-mist"
+                  className="btn-pill"
                 >
                   Cancelar
                 </button>
@@ -289,16 +297,16 @@ export default function DashboardPage() {
         </section>
 
         <section>
-          <h2 className="font-display text-2xl text-leaf-deep">
+          <h2 className="font-display text-2xl text-ink">
             Catálogo ({products.length})
           </h2>
           <ul className="mt-6 space-y-4">
             {products.map((product) => (
               <li
                 key={product.id}
-                className="flex gap-4 border border-leaf/15 bg-paper/70 p-3 sm:p-4"
+                className="flex gap-4 border border-line bg-paper p-3 sm:p-4"
               >
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-mist sm:h-24 sm:w-24">
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-soft sm:h-24 sm:w-24">
                   <Image
                     src={product.image}
                     alt=""
@@ -318,30 +326,30 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     {product.promo && (
-                      <span className="bg-petal px-2 py-0.5 text-xs font-medium text-white">
+                      <span className="bg-promo px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white">
                         Promo
                       </span>
                     )}
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-3">
                     <button
                       type="button"
                       onClick={() => startEdit(product)}
-                      className="text-xs font-medium text-leaf hover:underline"
+                      className="text-[11px] uppercase tracking-[0.14em] text-brand hover:underline"
                     >
                       Editar
                     </button>
                     <button
                       type="button"
                       onClick={() => void togglePromo(product)}
-                      className="text-xs font-medium text-petal hover:underline"
+                      className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-promo"
                     >
                       {product.promo ? "Quitar promo" : "Marcar promo"}
                     </button>
                     <button
                       type="button"
                       onClick={() => void removeProduct(product.id)}
-                      className="text-xs font-medium text-muted hover:text-petal hover:underline"
+                      className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-promo"
                     >
                       Eliminar
                     </button>
