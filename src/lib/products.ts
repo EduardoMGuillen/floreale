@@ -77,7 +77,24 @@ export async function updateProduct(id: string, input: Partial<ProductInput>) {
 }
 
 export async function deleteProduct(id: string) {
-  const products = await readAll();
+  // Retry read a few times — transient Blob read errors must not wipe / fail silently
+  let products: Product[] | null = null;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      products = await readAll();
+      break;
+    } catch (err) {
+      lastError = err;
+      await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+    }
+  }
+  if (!products) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("No se pudo leer el catálogo para eliminar");
+  }
+
   const decoded = decodeURIComponent(id);
   const next = products.filter((p) => p.id !== id && p.id !== decoded);
   if (next.length === products.length) return false;

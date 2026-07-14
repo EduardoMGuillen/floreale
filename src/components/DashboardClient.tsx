@@ -32,6 +32,7 @@ type BusyState = {
 export default function DashboardClient() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -85,8 +86,14 @@ export default function DashboardClient() {
     try {
       const list = await fetchAllProducts();
       setProducts(list);
+      setLoadFailed(false);
+      setError("");
     } catch {
-      setError("No se pudieron cargar los productos");
+      setLoadFailed(true);
+      setError(
+        "No se pudo leer el catálogo. Tus productos pueden seguir en Blob: pulsa Reintentar. No agregues de nuevo todavía.",
+      );
+      // Keep previous products if any; don't force []
     }
     setReady(true);
   }, [router, fetchAllProducts]);
@@ -602,6 +609,24 @@ export default function DashboardClient() {
           {error && (
             <p className="mt-3 text-sm text-promo" role="alert">
               {error}
+            </p>
+          )}
+          {loadFailed && (
+            <button
+              type="button"
+              className="btn-pill mt-3"
+              disabled={locked}
+              onClick={() => {
+                setBusy({ label: "Reintentando leer el catálogo…" });
+                void load().finally(() => setBusy(null));
+              }}
+            >
+              Reintentar cargar catálogo
+            </button>
+          )}
+          {!loadFailed && products.length === 0 && (
+            <p className="mt-4 text-sm text-muted">
+              No hay productos. Agrega el primero con el formulario.
             </p>
           )}
           <ul className="mt-6 space-y-4">
