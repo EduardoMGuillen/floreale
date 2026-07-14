@@ -98,7 +98,7 @@ export default function DashboardClient() {
       if (!res.ok) {
         setError(
           data.error ||
-            `No se pudo subir la imagen (${res.status}). Revisa BLOB_READ_WRITE_TOKEN en Vercel.`,
+            `No se pudo subir la imagen (${res.status}). Revisa Blob (BLOB_STORE_ID) en Vercel y Redeploy.`,
         );
         return;
       }

@@ -57,15 +57,19 @@ Esta plantilla usa **Vercel Blob** (`@vercel/blob`) vía `lib/blob-store.ts`:
 1. Abre el proyecto en [vercel.com](https://vercel.com).
 2. Ve a **Storage** → **Create** → **Blob**.
 3. Crea el store y **Connect** / enlázalo al proyecto (Production y Preview).
-4. Vercel crea la variable de entorno **`BLOB_READ_WRITE_TOKEN`**.
-5. Confirma en **Settings → Environment Variables** que `BLOB_READ_WRITE_TOKEN` esté en:
-   - Production  
-   - Preview (recomendado)  
-   - Development (opcional, si pruebas Blob en local)
+4. Vercel conecta el store al proyecto. En Env Variables deberías ver al menos:
+   - **`BLOB_STORE_ID`** (actual; autentica con OIDC en Vercel)
+   - a veces `BLOB_WEBHOOK_PUBLIC_KEY` (webhooks; no es necesario para esta app)
+   - a veces también `BLOB_READ_WRITE_TOKEN` (token estático opcional)
+5. Confirma en **Settings → Environment Variables** que `BLOB_STORE_ID` (o `BLOB_READ_WRITE_TOKEN`) esté en Production y Preview.
 6. También configura el resto de variables (ver abajo).
-7. Haz un **Redeploy** (Deployments → … → Redeploy) para que el token cargue.
+7. Haz un **Redeploy** para que carguen las variables.
 
-Sin `BLOB_READ_WRITE_TOKEN` en Production, el admin puede mostrar errores al guardar, borrar o subir imágenes.
+Con `BLOB_STORE_ID` basta en Vercel (el SDK usa OIDC automáticamente). `BLOB_WEBHOOK_PUBLIC_KEY` puedes ignorarlo para RoseLune.
+
+**Importante:** el Blob debe ser de acceso **Public** para que las fotos del catálogo se vean en la tienda.
+
+Sin `BLOB_STORE_ID` ni `BLOB_READ_WRITE_TOKEN` en Production, el admin fallará al guardar, borrar o subir imágenes.
 
 #### Archivos clave
 
@@ -109,12 +113,16 @@ AUTH_SECRET=cambia-este-secreto
 NEXT_PUBLIC_WHATSAPP=50493720140
 NEXT_PUBLIC_SITE_URL=https://tu-dominio.vercel.app
 
-# Obligatorio en Vercel para CRUD de productos e imágenes:
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
+# Blob en Vercel (cualquiera de estos basta):
+# BLOB_STORE_ID=store_...          ← lo crea Vercel al conectar Blob (OIDC)
+# BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...  ← opcional / local
+# BLOB_WEBHOOK_PUBLIC_KEY=...      ← lo puedes ignorar
 ```
 
 - `NEXT_PUBLIC_SITE_URL` = URL pública (sale en el mensaje de WhatsApp).  
-- `BLOB_READ_WRITE_TOKEN` = token de Vercel Blob (no lo subas a Git; solo Env de Vercel / `.env.local`).  
+- `BLOB_STORE_ID` = ID del store Blob (suficiente en Vercel con OIDC).  
+- `BLOB_READ_WRITE_TOKEN` = token estático opcional (útil en local con `vercel env pull`).  
+- `BLOB_WEBHOOK_PUBLIC_KEY` = no lo usa esta plantilla.  
 - Plantilla de ejemplo: `.env.example`
 
 ## Checklist al adaptar otro sector
@@ -136,7 +144,7 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
 | Panel CRUD productos | `components/DashboardClient.tsx`, `app/dashboard/page.tsx` |
 | Subida de imágenes | `app/api/upload/route.ts`, `lib/compress-image.ts`, `lib/blob-store.ts` |
 | Persistencia catálogo | `lib/blob-store.ts`, `lib/products.ts`, `app/api/products/**` (+ Blob en Vercel) |
-| Token Blob (Vercel) | Env `BLOB_READ_WRITE_TOKEN` (Storage → Blob) |
+| Token / store Blob (Vercel) | Env `BLOB_STORE_ID` y/o `BLOB_READ_WRITE_TOKEN` (Storage → Blob) |
 | Auth / cookie | `lib/auth.ts`, `app/api/auth/**`, `middleware.ts` |
 | WhatsApp + mensaje de pedido | `lib/whatsapp.ts`, `lib/constants.ts` |
 | URL pública (enlaces en chat) | `NEXT_PUBLIC_SITE_URL` |

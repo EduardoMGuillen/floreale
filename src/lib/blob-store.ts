@@ -6,8 +6,23 @@ import type { Product } from "./types";
 const PRODUCTS_BLOB_KEY = "roselune/products.json";
 const LEGACY_PATH = path.join(process.cwd(), "data", "products.json");
 
+/**
+ * Blob is ready when we have either:
+ * - BLOB_STORE_ID (OIDC on Vercel — what the dashboard creates today), or
+ * - BLOB_READ_WRITE_TOKEN (static token, also fine)
+ */
 export function hasBlobStore() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(
+    process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN,
+  );
+}
+
+function blobAuthOptions() {
+  // Only pass static token if present; otherwise @vercel/blob uses OIDC + BLOB_STORE_ID on Vercel
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    return { token: process.env.BLOB_READ_WRITE_TOKEN };
+  }
+  return {};
 }
 
 async function readSeed(): Promise<Product[]> {
@@ -37,7 +52,11 @@ async function writeToLocal(products: Product[]) {
 }
 
 async function readFromBlob(): Promise<Product[] | null> {
-  const { blobs } = await list({ prefix: PRODUCTS_BLOB_KEY, limit: 10 });
+  const { blobs } = await list({
+    prefix: PRODUCTS_BLOB_KEY,
+    limit: 10,
+    ...blobAuthOptions(),
+  });
   const match = blobs.find((b) => b.pathname === PRODUCTS_BLOB_KEY);
   if (!match) return null;
 
@@ -54,7 +73,7 @@ async function writeToBlob(products: Product[]) {
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
-    token: process.env.BLOB_READ_WRITE_TOKEN,
+    ...blobAuthOptions(),
   });
 }
 
@@ -79,7 +98,7 @@ export async function saveProducts(products: Product[]) {
 
   if (process.env.VERCEL) {
     throw new Error(
-      "Falta BLOB_READ_WRITE_TOKEN en Vercel. Activa Blob Storage y agrega el token para poder guardar/eliminar productos.",
+      "Falta Blob en Vercel. Crea Storage → Blob y asegúrate de tener BLOB_STORE_ID (o BLOB_READ_WRITE_TOKEN), luego Redeploy.",
     );
   }
 
@@ -93,10 +112,9 @@ export async function uploadProductImage(
   if (!hasBlobStore()) {
     if (process.env.VERCEL) {
       throw new Error(
-        "Falta BLOB_READ_WRITE_TOKEN en Vercel para subir imágenes.",
+        "Falta Blob en Vercel para subir imágenes (BLOB_STORE_ID o BLOB_READ_WRITE_TOKEN).",
       );
     }
-    // Local fallback: write under public/uploads
     const buffer = Buffer.from(await file.arrayBuffer());
     const uploadDir = path.join(process.cwd(), "public", "uploads");
     await fs.mkdir(uploadDir, { recursive: true });
@@ -109,7 +127,7 @@ export async function uploadProductImage(
     access: "public",
     contentType: file.type || "image/jpeg",
     addRandomSuffix: true,
-    token: process.env.BLOB_READ_WRITE_TOKEN,
+    ...blobAuthOptions(),
   });
   return blob.url;
 }

@@ -65,7 +65,7 @@ export async function DELETE(_request: Request, { params }: Params) {
         error:
           err instanceof Error
             ? err.message
-            : "No se pudo eliminar. En Vercel necesitas BLOB_READ_WRITE_TOKEN.",
+            : "No se pudo eliminar. Revisa Blob (BLOB_STORE_ID) y vuelve a desplegar.",
       },
       { status: 500 },
     );
