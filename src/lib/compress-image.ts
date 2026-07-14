@@ -1,13 +1,5 @@
-const TARGET_BYTES = 7.5 * 1024 * 1024;
+const TARGET_BYTES = 1.5 * 1024 * 1024;
 const HARD_MAX_BYTES = 8 * 1024 * 1024;
-
-const SERVER_OK = new Set([
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -21,7 +13,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
       URL.revokeObjectURL(url);
       reject(
         new Error(
-          "No se pudo leer la imagen. Si es HEIC, cambia el formato a JPG en el teléfono.",
+          "No se pudo leer la imagen. Si es HEIC, exporta a JPG en el teléfono.",
         ),
       );
     };
@@ -31,42 +23,37 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 
 function canvasToBlob(
   canvas: HTMLCanvasElement,
-  type: string,
   quality: number,
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (!blob) {
-          reject(new Error("No se pudo comprimir la imagen"));
-          return;
-        }
-        resolve(blob);
+        if (!blob) reject(new Error("No se pudo comprimir la imagen"));
+        else resolve(blob);
       },
-      type,
+      "image/jpeg",
       quality,
     );
   });
 }
 
-/**
- * Accepts large phone photos and compresses/converts to JPEG under 8 MB.
- */
+/** Compress camera/gallery photo to a JPEG File under ~1.5 MB. */
 export async function compressImageForUpload(file: File): Promise<File> {
-  const mime = (file.type || "").toLowerCase();
-  const alreadyOk =
-    file.size > 0 &&
-    file.size <= HARD_MAX_BYTES &&
-    SERVER_OK.has(mime);
+  if (!file || file.size === 0) {
+    throw new Error("Selecciona una imagen válida");
+  }
 
-  if (alreadyOk) return file;
+  const mime = (file.type || "").toLowerCase();
+  if (mime === "image/jpeg" && file.size <= TARGET_BYTES) {
+    return file;
+  }
 
   const img = await loadImage(file);
-  let maxEdge = 2400;
-  let quality = 0.85;
+  let maxEdge = Math.min(2000, Math.max(img.width, img.height));
+  let quality = 0.82;
   let blob: Blob | null = null;
 
-  for (let attempt = 0; attempt < 12; attempt++) {
+  for (let attempt = 0; attempt < 14; attempt++) {
     const scale = Math.min(1, maxEdge / Math.max(img.width, img.height, 1));
     const width = Math.max(1, Math.round(img.width * scale));
     const height = Math.max(1, Math.round(img.height * scale));
@@ -80,21 +67,20 @@ export async function compressImageForUpload(file: File): Promise<File> {
     ctx.fillRect(0, 0, width, height);
     ctx.drawImage(img, 0, 0, width, height);
 
-    blob = await canvasToBlob(canvas, "image/jpeg", quality);
+    blob = await canvasToBlob(canvas, quality);
     if (blob.size <= TARGET_BYTES) break;
 
-    if (quality > 0.4) {
-      quality = Math.round((quality - 0.1) * 100) / 100;
+    if (quality > 0.45) {
+      quality = Math.round((quality - 0.08) * 100) / 100;
     } else {
-      maxEdge = Math.max(800, Math.round(maxEdge * 0.7));
-      quality = 0.72;
+      maxEdge = Math.max(640, Math.round(maxEdge * 0.72));
+      quality = 0.7;
     }
   }
 
-  if (!blob || blob.size > HARD_MAX_BYTES) {
-    throw new Error(
-      "No se pudo comprimir la imagen bajo 8 MB. Prueba otra foto.",
-    );
+  if (!blob) throw new Error("No se pudo comprimir la imagen");
+  if (blob.size > HARD_MAX_BYTES) {
+    throw new Error("La imagen sigue siendo demasiado pesada tras comprimir");
   }
 
   const base = file.name.replace(/\.[^.]+$/, "") || `producto-${Date.now()}`;

@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import ProductImage from "@/components/ProductImage";
 import { CATALOG_FILTERS } from "@/lib/constants";
 import type { Product } from "@/lib/types";
 import { whatsappBuyUrl } from "@/lib/whatsapp";
@@ -110,7 +110,7 @@ export default function Products({
               >
                 <Link href={`/producto/${product.id}`} className="group block">
                   <div className="relative aspect-square overflow-hidden bg-soft">
-                    <Image
+                    <ProductImage
                       src={product.image}
                       alt={product.name}
                       fill

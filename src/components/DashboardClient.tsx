@@ -89,10 +89,21 @@ export default function DashboardClient() {
       const compressed = await compressImageForUpload(file);
       const body = new FormData();
       body.append("file", compressed);
-      const res = await fetch("/api/upload", { method: "POST", body });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body,
+        cache: "no-store",
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "No se pudo subir la imagen");
+        setError(
+          data.error ||
+            `No se pudo subir la imagen (${res.status}). Revisa BLOB_READ_WRITE_TOKEN en Vercel.`,
+        );
+        return;
+      }
+      if (!data.url) {
+        setError("La subida no devolvió URL de imagen");
         return;
       }
       setForm((prev) => ({ ...prev, image: data.url as string }));
@@ -100,7 +111,7 @@ export default function DashboardClient() {
       const message =
         err instanceof Error
           ? err.message
-          : "Error al subir la imagen. Revisa la conexión.";
+          : "Error al procesar/subir la imagen.";
       setError(message);
     } finally {
       setUploading(false);
@@ -336,7 +347,7 @@ export default function DashboardClient() {
                 />
               </label>
               <p className="text-xs text-muted">
-                Puedes subir fotos grandes: se comprimen automáticamente a menos de 8 MB.
+                Se comprime en el dispositivo y se guarda en Vercel Blob (persistente).
               </p>
 
               <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
@@ -416,6 +427,11 @@ export default function DashboardClient() {
           <h2 className="font-display text-2xl text-ink">
             Catálogo ({products.length})
           </h2>
+          {error && (
+            <p className="mt-3 text-sm text-promo" role="alert">
+              {error}
+            </p>
+          )}
           <ul className="mt-6 space-y-4">
             {products.map((product) => (
               <li

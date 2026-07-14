@@ -33,15 +33,29 @@ export async function POST(request: Request) {
     );
   }
 
-  const product = await createProduct({
-    name: body.name,
-    description: body.description || "",
-    price: body.price ?? 0,
-    image: body.image,
-    category: body.category || "General",
-    promo: Boolean(body.promo),
-    active: body.active !== false,
-  });
+  try {
+    const product = await createProduct({
+      name: body.name,
+      description: body.description || "",
+      price: body.price ?? 0,
+      image: body.image,
+      category: body.category || "General",
+      promo: Boolean(body.promo),
+      active: body.active !== false,
+    });
 
-  return NextResponse.json(product, { status: 201 });
+    return NextResponse.json(product, {
+      status: 201,
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch (err) {
+    console.error("POST product", err);
+    return NextResponse.json(
+      {
+        error:
+          "No se pudo guardar el producto. Si usas OneDrive, pausa la sincronización e intenta de nuevo.",
+      },
+      { status: 500 },
+    );
+  }
 }

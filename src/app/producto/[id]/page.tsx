@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ProductImage from "@/components/ProductImage";
 import { getProductById, getProducts } from "@/lib/products";
 import { whatsappBuyUrl } from "@/lib/whatsapp";
 
@@ -24,7 +24,7 @@ export default async function ProductPage({ params }: Props) {
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <p className="text-[11px] uppercase tracking-[0.14em] text-muted">
-          <Link href="/#catalogo" className="hover:text-brand">
+          <Link href="/productos" className="hover:text-brand">
             Catálogo
           </Link>
           <span className="mx-2">/</span>
@@ -33,7 +33,7 @@ export default async function ProductPage({ params }: Props) {
 
         <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
           <div className="relative aspect-square overflow-hidden bg-soft">
-            <Image
+            <ProductImage
               src={product.image}
               alt={product.name}
               fill
@@ -55,7 +55,7 @@ export default async function ProductPage({ params }: Props) {
                   key={i}
                   className="relative h-16 w-16 overflow-hidden bg-soft sm:h-20 sm:w-20"
                 >
-                  <Image
+                  <ProductImage
                     src={src}
                     alt=""
                     fill
@@ -95,7 +95,7 @@ export default async function ProductPage({ params }: Props) {
               {related.map((item) => (
                 <Link key={item.id} href={`/producto/${item.id}`} className="group">
                   <div className="relative aspect-square overflow-hidden bg-soft">
-                    <Image
+                    <ProductImage
                       src={item.image}
                       alt={item.name}
                       fill

@@ -40,6 +40,17 @@ Requisitos técnicos:
 
 Además de la landing, esta plantilla incluye:
 
+### Persistencia en Vercel (importante)
+
+En Vercel **el disco no guarda cambios**. Para que funcionen crear/editar/eliminar productos y subir fotos:
+
+1. En el proyecto de Vercel: **Storage → Create → Blob**
+2. Conéctalo al proyecto (genera `BLOB_READ_WRITE_TOKEN`)
+3. Asegúrate de que la variable exista en **Settings → Environment Variables** (Production + Preview)
+4. Redeploy
+
+Localmente, sin ese token, se usa `data/products.json` y `public/uploads/`.
+
 ### Login administrativo
 
 - Ruta pública: `/login` (`src/app/login/page.tsx`)
@@ -53,9 +64,9 @@ Además de la landing, esta plantilla incluye:
 
 - Ruta: `/dashboard` (`src/app/dashboard/page.tsx` + `components/DashboardClient.tsx`)
 - Acciones: crear, editar, eliminar productos; marcar/quitar **promoción**; ocultar/mostrar en tienda (`active`)
-- Imagen: subir archivo desde móvil/PC (se comprime bajo 8 MB en el navegador → `POST /api/upload` → `public/uploads/`) o pegar URL
-- Persistencia: `data/products.json` vía `lib/products.ts`
-- API: `GET/POST /api/products`, `GET/PATCH/DELETE /api/products/[id]`, `POST /api/upload`
+- Imagen: se comprime en el navegador a data URL y se guarda en `data/products.json` (no depende de subir archivo al servidor)
+- Persistencia: `data/products.json` con escritura atómica + reintentos (vía `lib/products.ts`)
+- API: `GET/POST /api/products`, `GET/PATCH/DELETE /api/products/[id]`
 - Formulario responsive (móvil y desktop en dos columnas)
 
 ### Compra por WhatsApp

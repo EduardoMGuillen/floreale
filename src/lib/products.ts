@@ -1,16 +1,12 @@
-import { promises as fs } from "fs";
-import path from "path";
 import type { Product, ProductInput } from "./types";
-
-const DATA_PATH = path.join(process.cwd(), "data", "products.json");
+import { loadProducts, saveProducts } from "./blob-store";
 
 async function readAll(): Promise<Product[]> {
-  const raw = await fs.readFile(DATA_PATH, "utf8");
-  return JSON.parse(raw) as Product[];
+  return loadProducts();
 }
 
 async function writeAll(products: Product[]) {
-  await fs.writeFile(DATA_PATH, JSON.stringify(products, null, 2), "utf8");
+  await saveProducts(products);
 }
 
 function slugify(name: string) {
@@ -31,7 +27,8 @@ export async function getProducts(opts?: { includeInactive?: boolean }) {
 
 export async function getProductById(id: string) {
   const products = await readAll();
-  return products.find((p) => p.id === id) ?? null;
+  const decoded = decodeURIComponent(id);
+  return products.find((p) => p.id === id || p.id === decoded) ?? null;
 }
 
 export async function createProduct(input: ProductInput) {
@@ -60,7 +57,8 @@ export async function createProduct(input: ProductInput) {
 
 export async function updateProduct(id: string, input: Partial<ProductInput>) {
   const products = await readAll();
-  const idx = products.findIndex((p) => p.id === id);
+  const decoded = decodeURIComponent(id);
+  const idx = products.findIndex((p) => p.id === id || p.id === decoded);
   if (idx === -1) return null;
   const current = products[idx];
   products[idx] = {
@@ -84,5 +82,6 @@ export async function deleteProduct(id: string) {
   const next = products.filter((p) => p.id !== id && p.id !== decoded);
   if (next.length === products.length) return false;
   await writeAll(next);
-  return true;
+  const after = await readAll();
+  return !after.some((p) => p.id === id || p.id === decoded);
 }
