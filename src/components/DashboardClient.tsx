@@ -147,7 +147,7 @@ export default function DashboardClient() {
           <div className="flex items-center gap-3">
             <Link href="/" aria-label={BRAND}>
               <Image
-                src="/logo.jpg"
+                src="/logo.png"
                 alt={BRAND}
                 width={160}
                 height={48}

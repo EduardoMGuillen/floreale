@@ -33,7 +33,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center px-4 py-14 text-center sm:px-6 lg:px-8">
         <Link href="/" className="flex flex-col items-center" aria-label={BRAND}>
           <Image
-            src="/logo.jpg"
+            src="/logo.png"
             alt={BRAND}
             width={200}
             height={64}

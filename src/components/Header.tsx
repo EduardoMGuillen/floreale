@@ -52,7 +52,7 @@ export default function Header({ blush = false }: { blush?: boolean }) {
           aria-label={BRAND}
         >
           <Image
-            src="/logo.jpg"
+            src="/logo.png"
             alt={BRAND}
             width={220}
             height={64}

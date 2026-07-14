@@ -67,60 +67,52 @@ export default function Products({ products }: { products: Product[] }) {
             No hay productos en esta categoría.
           </p>
         ) : (
-          <div className="mt-12 columns-1 gap-6 sm:columns-2 lg:columns-3">
-            {visible.map((product, index) => {
-              const tall = index % 5 === 0 || index % 5 === 3;
-              return (
-                <motion.article
-                  key={product.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.45, delay: (index % 3) * 0.05 }}
-                  className="mb-8 break-inside-avoid"
-                >
-                  <Link href={`/producto/${product.id}`} className="group block">
-                    <div
-                      className={`relative overflow-hidden bg-soft ${
-                        tall ? "aspect-[3/4]" : "aspect-square"
-                      }`}
-                    >
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                      />
-                      {product.promo && (
-                        <span className="absolute left-3 top-3 bg-promo px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white">
-                          Promo
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                  <div className="mt-3 flex items-baseline justify-between gap-3">
-                    <Link
-                      href={`/producto/${product.id}`}
-                      className="font-display text-base text-ink transition hover:text-brand sm:text-lg"
-                    >
-                      {product.name}
-                    </Link>
-                    <p className="shrink-0 text-sm text-ink/80">
-                      {formatPrice(product.price)}
-                    </p>
+          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((product, index) => (
+              <motion.article
+                key={product.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.45, delay: (index % 3) * 0.05 }}
+              >
+                <Link href={`/producto/${product.id}`} className="group block">
+                  <div className="relative aspect-square overflow-hidden bg-soft">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition duration-700 group-hover:scale-[1.03]"
+                    />
+                    {product.promo && (
+                      <span className="absolute left-3 top-3 bg-promo px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white">
+                        Promo
+                      </span>
+                    )}
                   </div>
-                  <a
-                    href={whatsappBuyUrl(product)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-block text-[10px] font-medium uppercase tracking-[0.18em] text-brand transition hover:text-brand-deep"
+                </Link>
+                <div className="mt-3 flex items-baseline justify-between gap-3">
+                  <Link
+                    href={`/producto/${product.id}`}
+                    className="font-display text-base text-ink transition hover:text-brand sm:text-lg"
                   >
-                    Comprar →
-                  </a>
-                </motion.article>
-              );
-            })}
+                    {product.name}
+                  </Link>
+                  <p className="shrink-0 text-sm text-ink/80">
+                    {formatPrice(product.price)}
+                  </p>
+                </div>
+                <a
+                  href={whatsappBuyUrl(product)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-block text-[10px] font-medium uppercase tracking-[0.18em] text-brand transition hover:text-brand-deep"
+                >
+                  Comprar →
+                </a>
+              </motion.article>
+            ))}
           </div>
         )}
 

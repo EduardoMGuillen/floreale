@@ -105,7 +105,7 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 - Productos demo también en `data/products.json` (Unsplash).
 - Licencia Unsplash: <https://unsplash.com/license>
 - Antes de producción: sustituir por fotos del cliente o stock con licencia explícita.
-- **Logo RoseLune:** `public/logo.jpg` — usado en `Header.tsx`, `Footer.tsx`, login y dashboard.
+- **Logo RoseLune:** `public/logo.png` — usado en `Header.tsx`, `Footer.tsx`, login y dashboard.
 ## Powered by Nexus Global
 
 En el footer del template hay un enlace **Powered by Nexus Global** hacia:

@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="mb-10 flex flex-col items-center text-center">
           <Link href="/" aria-label={BRAND}>
             <Image
-              src="/logo.jpg"
+              src="/logo.png"
               alt={BRAND}
               width={200}
               height={64}
