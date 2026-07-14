@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 const steps = [
   {
     title: "Elige",
-    text: "Explora el catálogo o arma tu ramo en el constructor.",
+    text: "Explora el catálogo y elige el arreglo que más te guste.",
   },
   {
     title: "Confirma",

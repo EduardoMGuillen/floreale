@@ -24,15 +24,43 @@ function matchesFilter(product: Product, filter: string) {
   return product.category === filter;
 }
 
-export default function Products({ products }: { products: Product[] }) {
+type ProductsProps = {
+  products: Product[];
+  title?: string;
+  showFilters?: boolean;
+  limit?: number;
+  seeAllHref?: string;
+  sectionId?: string;
+};
+
+export default function Products({
+  products,
+  title = "Ramos de flores",
+  showFilters = true,
+  limit,
+  seeAllHref = "/productos",
+  sectionId = "catalogo",
+}: ProductsProps) {
   const [filter, setFilter] = useState("all");
-  const visible = useMemo(
-    () => products.filter((p) => p.active && matchesFilter(p, filter)),
-    [products, filter],
-  );
+
+  const visible = useMemo(() => {
+    const filtered = products.filter(
+      (p) => p.active && matchesFilter(p, filter),
+    );
+    if (typeof limit === "number") return filtered.slice(0, limit);
+    return filtered;
+  }, [products, filter, limit]);
+
+  const totalActive = products.filter((p) => p.active).length;
+  const showSeeAll =
+    Boolean(seeAllHref) &&
+    (typeof limit === "number" ? totalActive > limit || totalActive > 0 : true);
 
   return (
-    <section id="catalogo" className="scroll-mt-24 bg-paper px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+    <section
+      id={sectionId}
+      className="scroll-mt-24 bg-paper px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+    >
       <div className="mx-auto max-w-6xl">
         <motion.h2
           initial={{ opacity: 0, y: 16 }}
@@ -40,27 +68,31 @@ export default function Products({ products }: { products: Product[] }) {
           viewport={{ once: true }}
           className="text-center font-display text-3xl text-ink sm:text-4xl"
         >
-          Ramos de flores
+          {title}
         </motion.h2>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-1 gap-y-2 text-[11px] uppercase tracking-[0.14em] text-muted">
-          {CATALOG_FILTERS.map((item, index) => (
-            <span key={item.id} className="inline-flex items-center">
-              {index > 0 && <span className="mx-2 hidden text-line sm:inline">|</span>}
-              <button
-                type="button"
-                onClick={() => setFilter(item.id)}
-                className={`px-2 py-1 transition ${
-                  filter === item.id
-                    ? "text-brand"
-                    : "text-muted hover:text-ink"
-                }`}
-              >
-                {item.label}
-              </button>
-            </span>
-          ))}
-        </div>
+        {showFilters && (
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-1 gap-y-2 text-[11px] uppercase tracking-[0.14em] text-muted">
+            {CATALOG_FILTERS.map((item, index) => (
+              <span key={item.id} className="inline-flex items-center">
+                {index > 0 && (
+                  <span className="mx-2 hidden text-line sm:inline">|</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setFilter(item.id)}
+                  className={`px-2 py-1 transition ${
+                    filter === item.id
+                      ? "text-brand"
+                      : "text-muted hover:text-ink"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
 
         {visible.length === 0 ? (
           <p className="mt-16 text-center text-sm text-muted">
@@ -116,11 +148,13 @@ export default function Products({ products }: { products: Product[] }) {
           </div>
         )}
 
-        <div className="mt-6 flex justify-center">
-          <a href="#catalogo" className="btn-pill">
-            Ver todo
-          </a>
-        </div>
+        {showSeeAll && seeAllHref && (
+          <div className="mt-10 flex justify-center">
+            <Link href={seeAllHref} className="btn-pill">
+              Ver todos
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

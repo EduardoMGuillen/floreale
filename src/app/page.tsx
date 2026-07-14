@@ -17,7 +17,7 @@ export default async function HomePage() {
       <Header blush />
       <main>
         <Hero />
-        <Products products={products} />
+        <Products products={products} limit={6} seeAllHref="/productos" />
         <About />
         <Delivery />
         <CtaBand />

@@ -17,7 +17,7 @@ export const CONTACT = {
 export const NAV_LINKS = [
   { href: "/#catalogo", label: "Catálogo" },
   { href: "/#entrega", label: "Entrega" },
-  { href: "/constructor", label: "Constructor" },
+  { href: "/productos", label: "Todos los productos" },
   { href: "/#contacto", label: "Contactos" },
 ] as const;
 

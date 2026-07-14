@@ -113,7 +113,7 @@ export default async function ProductPage({ params }: Props) {
               ))}
             </div>
             <div className="mt-10 flex justify-center">
-              <Link href="/#catalogo" className="btn-pill">
+              <Link href="/productos" className="btn-pill">
                 Ver todo
               </Link>
             </div>

@@ -29,7 +29,7 @@ export default function CtaBand() {
             <a href={wa} target="_blank" rel="noopener noreferrer" className="btn-pill">
               WhatsApp
             </a>
-            <a href="/#catalogo" className="btn-pill">
+            <a href="/productos" className="btn-pill">
               Ver catálogo
             </a>
           </div>
