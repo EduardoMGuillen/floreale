@@ -25,6 +25,10 @@ const emptyForm = {
 const inputClass =
   "mt-2 w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-brand";
 
+type BusyState = {
+  label: string;
+} | null;
+
 export default function DashboardClient() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -32,8 +36,11 @@ export default function DashboardClient() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [busy, setBusy] = useState<BusyState>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  const locked = Boolean(busy) || uploading;
 
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me", { cache: "no-store" });
@@ -61,6 +68,7 @@ export default function DashboardClient() {
   }
 
   function startEdit(product: Product) {
+    if (locked) return;
     setEditingId(product.id);
     setForm({
       name: product.name,
@@ -81,8 +89,9 @@ export default function DashboardClient() {
   }
 
   async function onImageFileChange(file: File | null) {
-    if (!file) return;
+    if (!file || locked) return;
     setUploading(true);
+    setBusy({ label: "Subiendo imagen… Espera, no recargues la página." });
     setError("");
     try {
       const { compressImageForUpload } = await import("@/lib/compress-image");
@@ -98,7 +107,7 @@ export default function DashboardClient() {
       if (!res.ok) {
         setError(
           data.error ||
-            `No se pudo subir la imagen (${res.status}). Revisa Blob (BLOB_STORE_ID) en Vercel y Redeploy.`,
+            `No se pudo subir la imagen (${res.status}). Revisa Blob en Vercel.`,
         );
         return;
       }
@@ -115,16 +124,22 @@ export default function DashboardClient() {
       setError(message);
     } finally {
       setUploading(false);
+      setBusy(null);
     }
   }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (locked) return;
     if (!form.image.trim()) {
       setError("Agrega una imagen (subida o URL)");
       return;
     }
-    setSaving(true);
+    setBusy({
+      label: editingId
+        ? "Guardando cambios… Espera a que termine."
+        : "Creando producto… Espera a que termine (puede tardar unos segundos).",
+    });
     setError("");
     const payload = {
       name: form.name,
@@ -164,34 +179,92 @@ export default function DashboardClient() {
     } catch {
       setError("Error de conexión");
     } finally {
-      setSaving(false);
+      setBusy(null);
     }
   }
 
   async function togglePromo(product: Product) {
+    if (locked) return;
     const nextPromo = !product.promo;
+    setPendingId(product.id);
+    setBusy({
+      label: nextPromo
+        ? "Marcando promoción… Espera."
+        : "Quitando promoción… Espera.",
+    });
+    const previous = products;
     setProducts((prev) =>
       prev.map((p) =>
         p.id === product.id ? { ...p, promo: nextPromo } : p,
       ),
     );
-    const res = await fetch(`/api/products/${product.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ promo: nextPromo }),
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      setError("No se pudo actualizar la promoción");
-      await load();
-      return;
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promo: nextPromo }),
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        setProducts(previous);
+        setError("No se pudo actualizar la promoción");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setProducts(previous);
+      setError("Error de conexión");
+    } finally {
+      setPendingId(null);
+      setBusy(null);
     }
-    router.refresh();
+  }
+
+  async function toggleVisibility(product: Product) {
+    if (locked) return;
+    const nextActive = !product.active;
+    setPendingId(product.id);
+    setBusy({
+      label: nextActive
+        ? "Mostrando en la tienda… Espera."
+        : "Ocultando de la tienda… Espera.",
+    });
+    const previous = products;
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === product.id ? { ...p, active: nextActive } : p,
+      ),
+    );
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: nextActive }),
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        setProducts(previous);
+        setError("No se pudo cambiar la visibilidad");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setProducts(previous);
+      setError("Error de conexión");
+    } finally {
+      setPendingId(null);
+      setBusy(null);
+    }
   }
 
   async function removeProduct(id: string) {
+    if (locked) return;
     if (!confirm("¿Eliminar este producto del catálogo?")) return;
 
+    setPendingId(id);
+    setBusy({
+      label: "Eliminando producto… Espera a que termine (no recargues).",
+    });
     const previous = products;
     setProducts((prev) => prev.filter((p) => p.id !== id));
     if (editingId === id) resetForm();
@@ -212,19 +285,43 @@ export default function DashboardClient() {
     } catch {
       setProducts(previous);
       setError("Error de conexión al eliminar");
+    } finally {
+      setPendingId(null);
+      setBusy(null);
     }
   }
 
   if (!ready) {
     return (
-      <div className="flex min-h-[100svh] items-center justify-center bg-soft text-muted">
-        Cargando panel…
+      <div className="flex min-h-[100svh] items-center justify-center text-muted">
+        <div className="flex flex-col items-center gap-4">
+          <span className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+          <p>Cargando panel…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100svh] bg-soft">
+    <div className="relative min-h-[100svh] bg-soft">
+      {busy && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/45 px-6 backdrop-blur-[2px]"
+          role="alertdialog"
+          aria-busy="true"
+          aria-live="assertive"
+        >
+          <div className="w-full max-w-sm border border-line bg-paper px-6 py-8 text-center shadow-lg">
+            <span className="mx-auto mb-5 block h-10 w-10 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+            <p className="font-display text-xl text-ink">Trabajando…</p>
+            <p className="mt-2 text-sm text-muted">{busy.label}</p>
+            <p className="mt-4 text-[11px] uppercase tracking-[0.14em] text-muted">
+              No recargues ni vuelvas a pulsar
+            </p>
+          </div>
+        </div>
+      )}
+
       <header className="border-b border-line bg-paper">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
@@ -248,7 +345,8 @@ export default function DashboardClient() {
             <button
               type="button"
               onClick={() => void logout()}
-              className="btn-pill !px-4 !py-2"
+              disabled={locked}
+              className="btn-pill !px-4 !py-2 disabled:opacity-50"
             >
               Salir
             </button>
@@ -262,7 +360,7 @@ export default function DashboardClient() {
             {editingId ? "Editar producto" : "Agregar producto"}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Marca promoción para destacarlo en el catálogo.
+            Guardar en Vercel puede tardar unos segundos. Espera la confirmación.
           </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -270,6 +368,7 @@ export default function DashboardClient() {
               Nombre
               <input
                 required
+                disabled={locked}
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className={inputClass}
@@ -279,6 +378,7 @@ export default function DashboardClient() {
               Descripción
               <textarea
                 required
+                disabled={locked}
                 rows={3}
                 value={form.description}
                 onChange={(e) =>
@@ -292,6 +392,7 @@ export default function DashboardClient() {
                 Precio (L)
                 <input
                   required
+                  disabled={locked}
                   type="number"
                   min="0"
                   step="1"
@@ -304,6 +405,7 @@ export default function DashboardClient() {
                 Categoría
                 <input
                   required
+                  disabled={locked}
                   value={form.category}
                   onChange={(e) =>
                     setForm({ ...form, category: e.target.value })
@@ -332,13 +434,15 @@ export default function DashboardClient() {
                 </div>
               )}
 
-              <label className="btn-pill inline-flex cursor-pointer !normal-case tracking-normal">
-                {uploading ? "Comprimiendo y subiendo…" : "Subir foto (galería o cámara)"}
+              <label
+                className={`btn-pill inline-flex !normal-case tracking-normal ${locked ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
+              >
+                {uploading ? "Subiendo…" : "Subir foto (galería o cámara)"}
                 <input
                   type="file"
                   accept="image/*"
                   className="sr-only"
-                  disabled={uploading || saving}
+                  disabled={locked}
                   onChange={(e) => {
                     const file = e.target.files?.[0] ?? null;
                     void onImageFileChange(file);
@@ -347,30 +451,27 @@ export default function DashboardClient() {
                 />
               </label>
               <p className="text-xs text-muted">
-                Se comprime en el dispositivo y se guarda en Vercel Blob (persistente).
+                Se comprime y se guarda en Vercel Blob.
               </p>
 
               <label className="block text-[11px] uppercase tracking-[0.14em] text-muted">
                 O pegar URL de imagen
                 <input
                   type="text"
+                  disabled={locked}
                   inputMode="url"
                   value={form.image}
                   onChange={(e) => setForm({ ...form, image: e.target.value })}
-                  placeholder="https://… o /uploads/…"
+                  placeholder="https://…"
                   className={inputClass}
                 />
               </label>
-              {!form.image && (
-                <p className="text-xs text-promo">
-                  Sube una foto o indica una URL para continuar.
-                </p>
-              )}
             </div>
             <div className="flex flex-wrap gap-4 pt-1 text-sm">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
+                  disabled={locked}
                   checked={form.promo}
                   onChange={(e) =>
                     setForm({ ...form, promo: e.target.checked })
@@ -382,6 +483,7 @@ export default function DashboardClient() {
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
+                  disabled={locked}
                   checked={form.active}
                   onChange={(e) =>
                     setForm({ ...form, active: e.target.checked })
@@ -401,20 +503,17 @@ export default function DashboardClient() {
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 type="submit"
-                disabled={saving || uploading || !form.image.trim()}
+                disabled={locked || !form.image.trim()}
                 className="btn-pill disabled:opacity-60"
               >
-                {saving
-                  ? "Guardando…"
-                  : editingId
-                    ? "Guardar cambios"
-                    : "Agregar producto"}
+                {editingId ? "Guardar cambios" : "Agregar producto"}
               </button>
               {editingId && (
                 <button
                   type="button"
+                  disabled={locked}
                   onClick={resetForm}
-                  className="btn-pill"
+                  className="btn-pill disabled:opacity-50"
                 >
                   Cancelar
                 </button>
@@ -433,61 +532,84 @@ export default function DashboardClient() {
             </p>
           )}
           <ul className="mt-6 space-y-4">
-            {products.map((product) => (
-              <li
-                key={product.id}
-                className="flex gap-4 border border-line bg-paper p-3 sm:p-4"
-              >
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-soft sm:h-24 sm:w-24">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={product.image}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-medium text-ink">{product.name}</p>
-                      <p className="text-sm text-muted">
-                        {product.category} · L{" "}
-                        {product.price.toLocaleString("es-HN")}
-                        {!product.active && " · Oculto"}
-                      </p>
+            {products.map((product) => {
+              const rowBusy = pendingId === product.id;
+              return (
+                <li
+                  key={product.id}
+                  className={`flex gap-4 border border-line bg-paper p-3 sm:p-4 ${
+                    !product.active ? "opacity-70" : ""
+                  } ${rowBusy ? "ring-1 ring-brand/40" : ""}`}
+                >
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-soft sm:h-24 sm:w-24">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={product.image}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium text-ink">{product.name}</p>
+                        <p className="text-sm text-muted">
+                          {product.category} · L{" "}
+                          {product.price.toLocaleString("es-HN")}
+                          {!product.active && " · Oculto"}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {product.promo && (
+                          <span className="bg-promo px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white">
+                            Promo
+                          </span>
+                        )}
+                        {!product.active && (
+                          <span className="bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white">
+                            Oculto
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {product.promo && (
-                      <span className="bg-promo px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white">
-                        Promo
-                      </span>
-                    )}
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        disabled={locked}
+                        onClick={() => startEdit(product)}
+                        className="text-[11px] uppercase tracking-[0.14em] text-brand hover:underline disabled:opacity-40"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        disabled={locked}
+                        onClick={() => void togglePromo(product)}
+                        className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-promo disabled:opacity-40"
+                      >
+                        {product.promo ? "Quitar promo" : "Marcar promo"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={locked}
+                        onClick={() => void toggleVisibility(product)}
+                        className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-brand disabled:opacity-40"
+                      >
+                        {product.active ? "Ocultar" : "Mostrar"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={locked}
+                        onClick={() => void removeProduct(product.id)}
+                        className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-promo disabled:opacity-40"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={() => startEdit(product)}
-                      className="text-[11px] uppercase tracking-[0.14em] text-brand hover:underline"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void togglePromo(product)}
-                      className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-promo"
-                    >
-                      {product.promo ? "Quitar promo" : "Marcar promo"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void removeProduct(product.id)}
-                      className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-promo"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </section>
       </main>

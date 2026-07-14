@@ -1,4 +1,4 @@
-import { put, list, BlobAccessError } from "@vercel/blob";
+import { put, head, BlobAccessError } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import type { Product } from "./types";
@@ -84,18 +84,16 @@ async function writeToLocal(products: Product[]) {
 
 async function readFromBlob(): Promise<Product[] | null> {
   return withBlobErrors(async () => {
-    const { blobs } = await list({
-      prefix: PRODUCTS_BLOB_KEY,
-      limit: 10,
-      ...blobAuthOptions(),
-    });
-    const match = blobs.find((b) => b.pathname === PRODUCTS_BLOB_KEY);
-    if (!match) return null;
-
-    const res = await fetch(match.url, { cache: "no-store" });
-    if (!res.ok) return null;
-    const parsed = (await res.json()) as Product[];
-    return Array.isArray(parsed) ? parsed : [];
+    try {
+      const meta = await head(PRODUCTS_BLOB_KEY, blobAuthOptions());
+      const res = await fetch(meta.url, { cache: "no-store" });
+      if (!res.ok) return null;
+      const parsed = (await res.json()) as Product[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      // Not found yet
+      return null;
+    }
   });
 }
 

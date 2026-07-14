@@ -82,6 +82,5 @@ export async function deleteProduct(id: string) {
   const next = products.filter((p) => p.id !== id && p.id !== decoded);
   if (next.length === products.length) return false;
   await writeAll(next);
-  const after = await readAll();
-  return !after.some((p) => p.id === id || p.id === decoded);
+  return true;
 }
