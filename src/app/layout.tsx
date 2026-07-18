@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Montserrat } from "next/font/google";
+import Script from "next/script";
 import {
   BRAND,
   BRAND_TAGLINE,
+  GA_MEASUREMENT_ID,
   INSTAGRAM_URL,
   SITE_URL,
 } from "@/lib/constants";
@@ -96,6 +98,18 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full bg-paper font-sans text-ink antialiased">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         {children}
       </body>
     </html>
