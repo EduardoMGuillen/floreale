@@ -1,10 +1,10 @@
 /**
- * Imágenes demo (Unsplash). Sustituir en producción por fotos del cliente.
- * Licencia: https://unsplash.com/license
+ * Imágenes de marca (fotos del cliente).
+ * Rutas locales en /public/images.
  */
 export const demoImages = {
-  hero: "https://images.unsplash.com/photo-1496062031456-07b8f162a322?w=1600&q=80",
-  about: "https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=1200&q=80",
+  hero: "/images/hero.png",
+  about: "/images/about.png",
   bouquet1: "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=800&q=80",
   bouquet2: "https://images.unsplash.com/photo-1519378058459-4fad1a5b0175?w=800&q=80",
   bouquet3: "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=800&q=80",

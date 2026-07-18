@@ -10,7 +10,7 @@ export default function Hero() {
     <section className="relative h-[62vh] min-h-[340px] max-h-[560px] w-full overflow-hidden sm:h-[68vh]">
       <Image
         src={demoImages.hero}
-        alt="Catálogo floral RoseLune"
+        alt="Flor rosa RoseLune"
         fill
         priority
         sizes="100vw"

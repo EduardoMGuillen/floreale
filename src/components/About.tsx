@@ -22,7 +22,7 @@ export default function About() {
         >
           <Image
             src={demoImages.about}
-            alt="Taller floral de RoseLune"
+            alt="Ramo floral RoseLune"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover"
