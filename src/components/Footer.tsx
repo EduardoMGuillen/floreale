@@ -73,6 +73,21 @@ export default function Footer() {
           <p>{CONTACT.address}</p>
         </div>
 
+        <nav className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2">
+          <Link
+            href="/contacto"
+            className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-brand"
+          >
+            Contacto
+          </Link>
+          <Link
+            href="/privacidad"
+            className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-brand"
+          >
+            Privacidad
+          </Link>
+        </nav>
+
         <div className="mt-8 flex items-center gap-2">
           <SocialIcon label="Instagram" href="https://instagram.com">
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
