@@ -41,6 +41,7 @@ export const AUTH_COOKIE = "roselune_session";
 export const INSTAGRAM_URL = "https://www.instagram.com/roselunehn/";
 export const INSTAGRAM_HANDLE = "@roselunehn";
 export const GA_MEASUREMENT_ID = "G-Z7P7YCK44P";
+export const ADSENSE_PUBLISHER_ID = "ca-pub-5358801062744911";
 
 export const CONTACT = {
   phoneDisplay: "+504 9372-0140",

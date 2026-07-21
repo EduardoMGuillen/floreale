@@ -5,6 +5,7 @@ import {
   BRAND,
   BRAND_TAGLINE,
   GA_MEASUREMENT_ID,
+  ADSENSE_PUBLISHER_ID,
   INSTAGRAM_URL,
   SITE_URL,
 } from "@/lib/constants";
@@ -70,6 +71,9 @@ export const metadata: Metadata = {
     title,
     description,
     images: ["/og.png"],
+  },
+  other: {
+    "google-adsense-account": ADSENSE_PUBLISHER_ID,
   },
 };
 
