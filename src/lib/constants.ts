@@ -2,6 +2,15 @@ export const BRAND = "RoseLune";
 export const BRAND_TAGLINE = "Floristería";
 export const WHATSAPP_NUMBER =
   process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || "50493720140";
+/** Solo origin (sin path). La app no usa basePath; paths tipo /prueba-edu rompen enlaces de WhatsApp. */
+function toOrigin(url: string) {
+  try {
+    return new URL(url.includes("://") ? url : `https://${url}`).origin;
+  } catch {
+    return url.replace(/\/$/, "");
+  }
+}
+
 function resolveSiteUrl() {
   const explicit = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
   const onVercel = process.env.VERCEL === "1";
@@ -9,20 +18,20 @@ function resolveSiteUrl() {
 
   // En Vercel, ignora localhost (suele venir copiado del .env de desarrollo).
   if (explicit && !(onVercel && isLocalhost)) {
-    return explicit;
+    return toOrigin(explicit);
   }
 
   const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
   if (vercelProd) {
-    return `https://${vercelProd.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+    return toOrigin(`https://${vercelProd.replace(/^https?:\/\//, "")}`);
   }
 
   const vercelUrl = process.env.VERCEL_URL;
   if (vercelUrl) {
-    return `https://${vercelUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+    return toOrigin(`https://${vercelUrl.replace(/^https?:\/\//, "")}`);
   }
 
-  return explicit || "http://localhost:3000";
+  return toOrigin(explicit || "http://localhost:3000");
 }
 
 export const SITE_URL = resolveSiteUrl();
