@@ -112,7 +112,16 @@ export default function Footer() {
           <p>
             © {year} {BRAND}
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
+            <Link href="/privacidad" className="hover:text-brand">
+              Privacidad
+            </Link>
+            <Link href="/terminos" className="hover:text-brand">
+              Términos
+            </Link>
+            <Link href="/contacto" className="hover:text-brand">
+              Contacto
+            </Link>
             <Link href="/login" className="hover:text-brand">
               Admin
             </Link>
