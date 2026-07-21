@@ -47,7 +47,7 @@ export const CONTACT = {
   phoneDisplay: "+504 9372-0140",
   phoneHref: `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || "50493720140"}`,
   email: "hola@roselune.com",
-  address: "Honduras",
+  address: "El Progreso, Yoro, Honduras",
 };
 
 export const NAV_LINKS = [

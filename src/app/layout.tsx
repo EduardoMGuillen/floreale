@@ -6,6 +6,7 @@ import {
   BRAND_TAGLINE,
   GA_MEASUREMENT_ID,
   ADSENSE_PUBLISHER_ID,
+  CONTACT,
   INSTAGRAM_URL,
   SITE_URL,
 } from "@/lib/constants";
@@ -23,9 +24,9 @@ const sans = Montserrat({
   weight: ["300", "400", "500", "600"],
 });
 
-const title = `${BRAND} | ${BRAND_TAGLINE}`;
+const title = `${BRAND} | Floristería en El Progreso, Yoro y San Pedro Sula, Honduras`;
 const description =
-  "RoseLune — ramos y arreglos florales elegantes. Catálogo online y pedidos por WhatsApp.";
+  "RoseLune — floristería premium en El Progreso, Yoro y San Pedro Sula. Ramos, arreglos florales y flores frescas con entrega a domicilio. Pedidos por WhatsApp.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -72,6 +73,16 @@ export const metadata: Metadata = {
     description,
     images: ["/og.png"],
   },
+  keywords: [
+    "floristería El Progreso Yoro",
+    "floristería San Pedro Sula",
+    "floristería Honduras",
+    "flores El Progreso",
+    "ramos florales Honduras",
+    "arreglos florales San Pedro Sula",
+    "flores frescas Honduras",
+    "RoseLune",
+  ],
   other: {
     "google-adsense-account": ADSENSE_PUBLISHER_ID,
   },
@@ -82,15 +93,38 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const siteOrigin = SITE_URL.replace(/\/$/, "");
   const organizationLd = {
     "@context": "https://schema.org",
-    "@type": "Florist",
+    "@type": ["Florist", "LocalBusiness"],
     name: BRAND,
     description,
     url: SITE_URL,
-    logo: `${SITE_URL.replace(/\/$/, "")}/logo.png`,
-    image: `${SITE_URL.replace(/\/$/, "")}/og.png`,
+    logo: `${siteOrigin}/logo.png`,
+    image: `${siteOrigin}/og.png`,
     sameAs: [INSTAGRAM_URL],
+    telephone: CONTACT.phoneDisplay,
+    email: CONTACT.email,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "El Progreso",
+      addressRegion: "Yoro",
+      addressCountry: "HN",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 15.4,
+      longitude: -87.8,
+    },
+    areaServed: [
+      { "@type": "City", name: "El Progreso, Yoro" },
+      { "@type": "City", name: "San Pedro Sula" },
+      { "@type": "Country", name: "Honduras" },
+    ],
+    priceRange: "$$",
+    currenciesAccepted: "HNL",
+    paymentAccepted: "Efectivo, Transferencia bancaria, WhatsApp Pay",
+    openingHours: "Mo-Sa 08:00-18:00",
   };
 
   return (

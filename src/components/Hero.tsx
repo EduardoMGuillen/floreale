@@ -35,6 +35,14 @@ export default function Hero() {
         >
           Catálogo
         </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.13 }}
+          className="mt-3 max-w-md text-sm tracking-wide text-white/90 sm:text-base"
+        >
+          Flores frescas en El Progreso, Yoro y San Pedro Sula
+        </motion.p>
         <motion.a
           href="/productos"
           initial={{ opacity: 0, y: 14 }}

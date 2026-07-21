@@ -7,7 +7,7 @@ import { demoImages } from "@/lib/demo-images";
 const points = [
   "Flores frescas de temporada, seleccionadas a diario",
   "Diseño a medida para eventos, regalos y espacios",
-  "Pedidos y entrega coordinados por WhatsApp",
+  "Entrega a domicilio en El Progreso, Yoro y San Pedro Sula",
 ];
 
 export default function About() {
@@ -42,7 +42,8 @@ export default function About() {
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">
             En RoseLune creamos arreglos que acompañan celebraciones y gestos
-            cotidianos. Cada pieza nace del cuidado por la flor y por quien la recibe.
+            cotidianos en El Progreso, Yoro y San Pedro Sula. Cada pieza nace del
+            cuidado por la flor y por quien la recibe.
           </p>
           <ul className="mt-8 space-y-3">
             {points.map((point) => (
