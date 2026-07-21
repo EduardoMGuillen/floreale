@@ -161,17 +161,66 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.vercel.app
 # BLOB_WEBHOOK_PUBLIC_KEY=...      ← lo puedes ignorar
 ```
 
-- `NEXT_PUBLIC_SITE_URL` = URL pública (sale en el mensaje de WhatsApp).  
+- `NEXT_PUBLIC_SITE_URL` = URL pública **de producción** (WhatsApp, Open Graph, schema). **No** pongas `http://localhost:3000` en Vercel.  
 - `BLOB_STORE_ID` = ID del store Blob (suficiente en Vercel con OIDC).  
 - `BLOB_READ_WRITE_TOKEN` = token estático opcional (útil en local con `vercel env pull`).  
 - `BLOB_WEBHOOK_PUBLIC_KEY` = no lo usa esta plantilla.  
 - Plantilla de ejemplo: `.env.example`
 
+### Favicon, logo en Google y preview al compartir (importante)
+
+Sin una URL pública absoluta, **WhatsApp / Facebook / iMessage no muestran el logo** al pegar el enlace.
+
+#### Qué incluir
+
+| Uso | Archivos / config |
+|-----|-------------------|
+| Pestaña de Chrome | `src/app/favicon.ico`, `src/app/icon.png`, `public/favicon.ico` |
+| Google (icono en resultados, ≥48×48) | `public/icon-48.png`, `public/icon-192.png`, `public/icon-512.png` |
+| Apple / “Añadir a inicio” | `src/app/apple-icon.png`, `public/apple-icon.png` |
+| Preview al compartir (Open Graph / Twitter) | `public/og.png` (1200×630) + `public/logo.png` |
+| Metadata + schema | `src/app/layout.tsx` (`metadata.icons`, `openGraph`, `twitter`, JSON-LD `logo`) |
+
+El icono de pestaña suele ser la **rosa** recortada en cuadrado (el wordmark completo no se lee a 32–48 px). `og.png` lleva el logo completo centrado sobre fondo oscuro.
+
+#### `NEXT_PUBLIC_SITE_URL` y preview al compartir
+
+Las etiquetas `og:image` se resuelven con `metadataBase` → `SITE_URL` en `lib/constants.ts`.
+
+1. En **Vercel → Settings → Environment Variables**, define:
+   ```
+   NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
+   ```
+   (o `https://tu-proyecto.vercel.app` si aún no hay dominio propio). Production + Preview.
+2. **Redeploy** después de cambiarla.
+3. Comprueba en el HTML que `og:image` sea una URL **https** pública, por ejemplo:
+   `https://tu-dominio.com/og.png`  
+   **Nunca** `http://localhost:3000/og.png` — esa URL no la puede descargar WhatsApp.
+
+Fallback en código (`resolveSiteUrl` en `lib/constants.ts`): si en Vercel queda `localhost`, se usa `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL`. Aun así, lo correcto es fijar `NEXT_PUBLIC_SITE_URL` al dominio real.
+
+#### Tiempos típicos
+
+| Dónde | Cuándo se ve |
+|-------|----------------|
+| Pestaña Chrome | Tras el deploy (a veces hace falta hard-refresh o ventana privada) |
+| Preview al compartir | Minutos–horas; WhatsApp **cachea** el preview. Prueba `?v=2` al final de la URL o un chat nuevo |
+| Icono en Google | Días o semanas (re-rastreo) |
+
+#### Error frecuente
+
+| Síntoma | Causa | Qué hacer |
+|---------|--------|-----------|
+| Al compartir el link no sale imagen / logo | `og:image` apunta a `localhost` o falta `NEXT_PUBLIC_SITE_URL` en producción | Poner la URL https real en Vercel + Redeploy; verificar que `/og.png` y `/logo.png` den 200 |
+| Sale el título pero sin foto | Cache del chat / app | Esperar o compartir con `?v=2` |
+| Chrome sigue con el icono viejo | Cache del navegador | Hard-refresh (Ctrl+Shift+R) |
+
 ## Checklist al adaptar otro sector
 
 | Qué cambiar | Archivo habitual |
 |-------------|------------------|
-| Título, descripción SEO | `app/layout.tsx` |
+| Título, descripción SEO, Open Graph, favicon | `app/layout.tsx` + iconos en `app/` y `public/` |
+| Logo / og preview al compartir | `public/logo.png`, `public/og.png`, `NEXT_PUBLIC_SITE_URL` |
 | Paleta de marca (blanco / rosado / negro / gris) | `app/globals.css` (`:root` + `@theme`) |
 | Navegación y CTA cabecera | `components/Header.tsx` |
 | Titular, métricas, hero visual | `components/Hero.tsx` |
@@ -189,7 +238,7 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.vercel.app
 | Token / store Blob (Vercel) | Env `BLOB_STORE_ID` y/o `BLOB_READ_WRITE_TOKEN` (Storage → Blob) |
 | Auth / cookie | `lib/auth.ts`, `app/api/auth/**`, `middleware.ts` |
 | WhatsApp + mensaje de pedido | `lib/whatsapp.ts`, `lib/constants.ts` |
-| URL pública (enlaces en chat) | `NEXT_PUBLIC_SITE_URL` |
+| URL pública (WhatsApp + og:image) | `NEXT_PUBLIC_SITE_URL` (https de producción, no localhost) |
 | Página producto (deep link) | `app/producto/[id]/page.tsx` |
 | Todos los productos | `app/productos/page.tsx` |
 
@@ -199,7 +248,8 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.vercel.app
 - Productos demo también en `data/products.json` (Unsplash).
 - Licencia Unsplash: <https://unsplash.com/license>
 - Antes de producción: sustituir por fotos del cliente o stock con licencia explícita.
-- **Logo RoseLune:** `public/logo.png` — usado en `Header.tsx`, `Footer.tsx`, login y dashboard.
+- **Logo RoseLune:** `public/logo.png` — Header, Footer, login, dashboard, Open Graph y JSON-LD.
+- **Preview social:** `public/og.png` (1200×630). Ver sección *Favicon, logo en Google y preview al compartir*.
 ## Powered by Nexus Global
 
 En el footer del template hay un enlace **Powered by Nexus Global** hacia:
