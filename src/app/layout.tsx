@@ -6,9 +6,11 @@ import {
   BRAND_TAGLINE,
   GA_MEASUREMENT_ID,
   ADSENSE_PUBLISHER_ID,
+  GOOGLE_SITE_VERIFICATION,
   CONTACT,
   INSTAGRAM_URL,
   SITE_URL,
+  CATALOG_FILTERS,
 } from "@/lib/constants";
 import "./globals.css";
 
@@ -24,15 +26,23 @@ const sans = Montserrat({
   weight: ["300", "400", "500", "600"],
 });
 
-const title = `${BRAND} | Floristería en El Progreso, Yoro y San Pedro Sula, Honduras`;
+const title = `${BRAND} | Floristería en Honduras — El Progreso, Yoro y San Pedro Sula`;
 const description =
-  "RoseLune — floristería premium en El Progreso, Yoro y San Pedro Sula. Ramos, arreglos florales y flores frescas con entrega a domicilio. Pedidos por WhatsApp.";
+  "RoseLune, floristería en Honduras. Ramos, cajas, canastas, arreglos, globos y detalles para eventos, con entrega a domicilio en El Progreso, Yoro y San Pedro Sula. Pedidos por WhatsApp.";
+
+const categoryKeywords = CATALOG_FILTERS.filter((f) => f.id !== "all").map(
+  (f) => `${f.label.toLowerCase()} de flores Honduras`,
+);
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title,
   description,
   applicationName: BRAND,
+  category: "shopping",
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -74,15 +84,22 @@ export const metadata: Metadata = {
     images: ["/og.png"],
   },
   keywords: [
+    "floristería Honduras",
     "floristería El Progreso Yoro",
     "floristería San Pedro Sula",
-    "floristería Honduras",
+    "florería cerca de mí",
     "flores El Progreso",
-    "ramos florales Honduras",
-    "arreglos florales San Pedro Sula",
+    "ramos de flores Honduras",
+    "arreglos florales para eventos",
+    "flores para eventos Honduras",
+    "envío de flores a domicilio Honduras",
     "flores frescas Honduras",
+    ...categoryKeywords,
     "RoseLune",
   ],
+  ...(GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: GOOGLE_SITE_VERIFICATION } }
+    : {}),
   other: {
     "google-adsense-account": ADSENSE_PUBLISHER_ID,
   },
@@ -97,8 +114,11 @@ export default function RootLayout({
   const organizationLd = {
     "@context": "https://schema.org",
     "@type": ["Florist", "LocalBusiness"],
+    "@id": `${siteOrigin}/#negocio`,
     name: BRAND,
+    alternateName: "RoseLune Floristería Honduras",
     description,
+    slogan: "Floristería en Honduras: ramos, cajas, canastas, arreglos, globos y eventos",
     url: SITE_URL,
     logo: `${siteOrigin}/logo.png`,
     image: `${siteOrigin}/og.png`,
@@ -111,6 +131,9 @@ export default function RootLayout({
       addressRegion: "Yoro",
       addressCountry: "HN",
     },
+    hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      `${BRAND} floristería ${CONTACT.address}`,
+    )}`,
     geo: {
       "@type": "GeoCoordinates",
       latitude: 15.4,
@@ -119,12 +142,26 @@ export default function RootLayout({
     areaServed: [
       { "@type": "City", name: "El Progreso, Yoro" },
       { "@type": "City", name: "San Pedro Sula" },
+      { "@type": "City", name: "Yoro" },
       { "@type": "Country", name: "Honduras" },
     ],
     priceRange: "$$",
     currenciesAccepted: "HNL",
     paymentAccepted: "Efectivo, Transferencia bancaria, WhatsApp Pay",
     openingHours: "Mo-Sa 08:00-18:00",
+    knowsAbout: CATALOG_FILTERS.filter((f) => f.id !== "all").map(
+      (f) => f.label,
+    ),
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Catálogo de flores RoseLune",
+      itemListElement: CATALOG_FILTERS.filter((f) => f.id !== "all").map(
+        (f) => ({
+          "@type": "OfferCatalog",
+          name: f.label,
+        }),
+      ),
+    },
   };
 
   return (

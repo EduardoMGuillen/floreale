@@ -42,6 +42,9 @@ export const INSTAGRAM_URL = "https://www.instagram.com/roselunehn/";
 export const INSTAGRAM_HANDLE = "@roselunehn";
 export const GA_MEASUREMENT_ID = "G-Z7P7YCK44P";
 export const ADSENSE_PUBLISHER_ID = "ca-pub-5358801062744911";
+/** Código de verificación de Google Search Console (Configuración > Ajustes > Verificación de propiedad > etiqueta HTML). */
+export const GOOGLE_SITE_VERIFICATION =
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "";
 
 export const CONTACT = {
   phoneDisplay: "+504 9372-0140",
