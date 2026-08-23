@@ -14,13 +14,6 @@ function formatPrice(price: number) {
 
 function matchesFilter(product: Product, filter: string) {
   if (filter === "all") return true;
-  if (filter === "Rosas") {
-    return (
-      product.category.toLowerCase().includes("rosa") ||
-      product.name.toLowerCase().includes("rosa") ||
-      product.name.toLowerCase().includes("romance")
-    );
-  }
   return product.category === filter;
 }
 
@@ -35,7 +28,7 @@ type ProductsProps = {
 
 export default function Products({
   products,
-  title = "Ramos de flores",
+  title = "Todos los Productos",
   showFilters = true,
   limit,
   seeAllHref = "/productos",

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Catálogo de Flores | RoseLune — El Progreso, Yoro y San Pedro Sula",
   description:
-    "Explora nuestro catálogo completo de ramos, arreglos florales, cajas y plantas. Entrega en El Progreso, Yoro y San Pedro Sula, Honduras.",
+    "Explora nuestro catálogo completo de ramos, cajas, canastas, arreglos, globos y detalles para eventos. Entrega en El Progreso, Yoro y San Pedro Sula, Honduras.",
 };
 
 export default async function ProductosPage() {
