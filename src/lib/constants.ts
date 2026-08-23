@@ -60,8 +60,9 @@ export const NAV_LINKS = [
 export const CATALOG_FILTERS = [
   { id: "all", label: "Todos" },
   { id: "Ramos", label: "Ramos" },
-  { id: "Arreglos", label: "Arreglos" },
   { id: "Cajas", label: "Cajas" },
-  { id: "Plantas", label: "Plantas" },
-  { id: "Rosas", label: "Rosas" },
+  { id: "Canastas", label: "Canastas" },
+  { id: "Arreglos", label: "Arreglos" },
+  { id: "Globos", label: "Globos" },
+  { id: "Eventos", label: "Eventos" },
 ] as const;
