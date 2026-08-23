@@ -1,14 +1,48 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductImage from "@/components/ProductImage";
+import { BRAND, SITE_URL } from "@/lib/constants";
 import { getProductById, getProducts } from "@/lib/products";
 import { whatsappBuyUrl } from "@/lib/whatsapp";
 
 type Props = { params: Promise<{ id: string }> };
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProductById(id);
+  if (!product || !product.active) {
+    return { title: `Producto no encontrado | ${BRAND}` };
+  }
+
+  const title = `${product.name} | ${product.category} — ${BRAND} Floristería Honduras`;
+  const description = `${product.description} Entrega en El Progreso, Yoro y San Pedro Sula. Pedidos por WhatsApp — L ${product.price.toLocaleString("es-HN")}.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/producto/${product.id}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL.replace(/\/$/, "")}/producto/${product.id}`,
+      type: "website",
+      images: [{ url: product.image, alt: product.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [product.image],
+    },
+  };
+}
 
 export default async function ProductPage({ params }: Props) {
   const { id } = await params;
@@ -19,8 +53,56 @@ export default async function ProductPage({ params }: Props) {
     .filter((p) => p.id !== product.id)
     .slice(0, 4);
 
+  const siteOrigin = SITE_URL.replace(/\/$/, "");
+  const productLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.image,
+    category: product.category,
+    url: `${siteOrigin}/producto/${product.id}`,
+    brand: { "@type": "Brand", name: BRAND },
+    offers: {
+      "@type": "Offer",
+      price: product.price,
+      priceCurrency: "HNL",
+      availability: "https://schema.org/InStock",
+      areaServed: "HN",
+      url: `${siteOrigin}/producto/${product.id}`,
+      seller: { "@type": "Organization", name: BRAND },
+    },
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: siteOrigin },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Catálogo",
+        item: `${siteOrigin}/productos`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: `${siteOrigin}/producto/${product.id}`,
+      },
+    ],
+  };
+
   return (
     <div className="bg-paper">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <p className="text-[11px] uppercase tracking-[0.14em] text-muted">
