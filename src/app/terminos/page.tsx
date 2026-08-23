@@ -6,6 +6,9 @@ import { BRAND, CONTACT } from "@/lib/constants";
 export const metadata: Metadata = {
   title: `Términos y Condiciones | ${BRAND}`,
   description: `Términos y condiciones de uso del sitio web y servicio de ${BRAND}.`,
+  alternates: {
+    canonical: "/terminos",
+  },
 };
 
 export default function TerminosPage() {

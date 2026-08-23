@@ -6,6 +6,9 @@ import { BRAND, CONTACT } from "@/lib/constants";
 export const metadata: Metadata = {
   title: `Política de Privacidad | ${BRAND}`,
   description: `Política de privacidad y tratamiento de datos personales de ${BRAND}.`,
+  alternates: {
+    canonical: "/privacidad",
+  },
 };
 
 export default function PrivacidadPage() {
