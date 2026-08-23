@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import Products from "@/components/Products";
 import About from "@/components/About";
 import Delivery from "@/components/Delivery";
+import Faq from "@/components/Faq";
 import CtaBand from "@/components/CtaBand";
 import Footer from "@/components/Footer";
 import { getProducts } from "@/lib/products";
@@ -11,9 +12,12 @@ import { getProducts } from "@/lib/products";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "RoseLune | Floristería en El Progreso, Yoro y San Pedro Sula, Honduras",
+  title: "RoseLune | Floristería en Honduras — Ramos, Cajas, Arreglos y Eventos",
   description:
-    "Ramos, arreglos florales y flores frescas en El Progreso, Yoro y San Pedro Sula. Pedidos por WhatsApp con entrega a domicilio. Floristería premium en Honduras.",
+    "Floristería en Honduras con entrega en El Progreso, Yoro y San Pedro Sula. Ramos, cajas, canastas, arreglos, globos y flores para eventos. Pedidos por WhatsApp.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default async function HomePage() {
@@ -27,6 +31,7 @@ export default async function HomePage() {
         <Products products={products} limit={6} seeAllHref="/productos" />
         <About />
         <Delivery />
+        <Faq />
         <CtaBand />
       </main>
       <Footer />

@@ -7,9 +7,12 @@ import { getProducts } from "@/lib/products";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Catálogo de Flores | RoseLune — El Progreso, Yoro y San Pedro Sula",
+  title: "Catálogo de Flores | Floristería Honduras — RoseLune",
   description:
-    "Explora nuestro catálogo completo de ramos, cajas, canastas, arreglos, globos y detalles para eventos. Entrega en El Progreso, Yoro y San Pedro Sula, Honduras.",
+    "Explora nuestro catálogo completo: ramos, cajas, canastas, arreglos, globos y detalles para eventos. Floristería en Honduras con entrega en El Progreso, Yoro y San Pedro Sula.",
+  alternates: {
+    canonical: "/productos",
+  },
 };
 
 export default async function ProductosPage() {

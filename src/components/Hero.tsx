@@ -31,9 +31,9 @@ export default function Hero() {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.08 }}
-          className="mt-3 text-5xl font-medium uppercase tracking-[0.2em] sm:text-6xl md:text-7xl"
+          className="mt-3 text-4xl font-medium uppercase tracking-[0.14em] sm:text-6xl md:text-7xl"
         >
-          Catálogo
+          Floristería en Honduras
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 14 }}
@@ -41,7 +41,8 @@ export default function Hero() {
           transition={{ duration: 0.55, delay: 0.13 }}
           className="mt-3 max-w-md text-sm tracking-wide text-white/90 sm:text-base"
         >
-          Flores frescas en El Progreso, Yoro y San Pedro Sula
+          Ramos, cajas, canastas, arreglos, globos y detalles para eventos —
+          entrega en El Progreso, Yoro y San Pedro Sula
         </motion.p>
         <motion.a
           href="/productos"
