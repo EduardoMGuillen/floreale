@@ -4,6 +4,7 @@ import {
   FormEvent,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import Image from "next/image";
@@ -40,8 +41,27 @@ export default function DashboardClient() {
   const [busy, setBusy] = useState<BusyState>(null);
   const [uploading, setUploading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const locked = Boolean(busy) || uploading;
+
+  const categoryOptions = useMemo(() => {
+    const set = new Set(
+      products.map((p) => p.category.trim()).filter(Boolean),
+    );
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "es"));
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return products.filter((p) => {
+      const matchesQuery = !query || p.name.toLowerCase().includes(query);
+      const matchesCategory =
+        categoryFilter === "all" || p.category === categoryFilter;
+      return matchesQuery && matchesCategory;
+    });
+  }, [products, searchQuery, categoryFilter]);
 
   const fetchAllProducts = useCallback(async () => {
     const res = await fetch("/api/products?all=1", { cache: "no-store" });
@@ -546,7 +566,10 @@ export default function DashboardClient() {
 
         <section>
           <h2 className="font-display text-2xl text-ink">
-            Catálogo ({products.length})
+            Catálogo ({filteredProducts.length}
+            {filteredProducts.length !== products.length &&
+              ` de ${products.length}`}
+            )
           </h2>
           {error && (
             <p className="mt-3 text-sm text-promo" role="alert">
@@ -566,13 +589,61 @@ export default function DashboardClient() {
               Reintentar cargar catálogo
             </button>
           )}
+
+          {!loadFailed && products.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              <label className="block min-w-[180px] flex-1 text-[11px] uppercase tracking-[0.14em] text-muted">
+                Buscar por nombre
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Ej. ramo, caja…"
+                  className={inputClass}
+                />
+              </label>
+              <label className="block min-w-[160px] text-[11px] uppercase tracking-[0.14em] text-muted">
+                Categoría
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="all">Todas</option>
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {(searchQuery || categoryFilter !== "all") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setCategoryFilter("all");
+                  }}
+                  className="btn-pill self-end !px-4 !py-2"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+            </div>
+          )}
+
           {!loadFailed && products.length === 0 && (
             <p className="mt-4 text-sm text-muted">
               No hay productos. Agrega el primero con el formulario.
             </p>
           )}
+          {!loadFailed && products.length > 0 && filteredProducts.length === 0 && (
+            <p className="mt-4 text-sm text-muted">
+              Ningún producto coincide con esos filtros.
+            </p>
+          )}
           <ul className="mt-6 space-y-4">
-            {products.map((product) => {
+            {filteredProducts.map((product) => {
               const rowBusy = pendingId === product.id;
               return (
                 <li
