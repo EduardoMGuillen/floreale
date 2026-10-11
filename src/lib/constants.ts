@@ -47,7 +47,7 @@ export const GOOGLE_SITE_VERIFICATION =
   process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "";
 /** Bing Webmaster Tools (meta msvalidate.01). ChatGPT Search usa el índice de Bing. */
 export const BING_SITE_VERIFICATION =
-  process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "";
+  process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "97AE949B924604215ED0B7F4CA5588B6";
 
 export const LOCAL_LANDING_PATH = "/floristeria-el-progreso";
 export const BUSINESS_LD_ID = `${SITE_URL}/#negocio`;
