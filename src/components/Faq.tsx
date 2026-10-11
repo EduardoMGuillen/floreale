@@ -1,10 +1,15 @@
 import { CONTACT } from "@/lib/constants";
+import { jsonLdHtml } from "@/lib/json-ld";
 
 const faqs = [
   {
-    question: "¿RoseLune es una floristería en Honduras?",
+    question: "¿Qué floristería hay en El Progreso, Yoro?",
     answer:
-      "Sí. RoseLune es una floristería en Honduras con entrega a domicilio en El Progreso, Yoro y San Pedro Sula. Todos los pedidos se coordinan por WhatsApp.",
+      "RoseLune es una floristería en El Progreso, Yoro, Honduras. Hace ramos, cajas con flores, canastas, arreglos florales, globos y decoración para eventos, con entrega a domicilio en El Progreso y San Pedro Sula. Los pedidos se hacen por WhatsApp desde el catálogo en línea.",
+  },
+  {
+    question: "¿Dónde pedir flores a domicilio en El Progreso?",
+    answer: `En RoseLune puedes elegir un ramo o arreglo en el catálogo en línea y pedirlo por WhatsApp al ${CONTACT.phoneDisplay}. Coordinamos la entrega a domicilio en El Progreso, Yoro, y también en San Pedro Sula.`,
   },
   {
     question: "¿Qué tipo de productos florales tienen?",
@@ -53,7 +58,7 @@ export default function Faq() {
     >
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        dangerouslySetInnerHTML={jsonLdHtml(faqLd)}
       />
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
@@ -61,7 +66,7 @@ export default function Faq() {
             Preguntas frecuentes
           </p>
           <h2 className="mt-3 font-display text-3xl text-ink sm:text-4xl">
-            Todo sobre nuestra floristería en Honduras
+            Todo sobre nuestra floristería en El Progreso
           </h2>
         </div>
 

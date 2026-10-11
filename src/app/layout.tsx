@@ -7,11 +7,15 @@ import {
   GA_MEASUREMENT_ID,
   ADSENSE_PUBLISHER_ID,
   GOOGLE_SITE_VERIFICATION,
+  BING_SITE_VERIFICATION,
+  BUSINESS_LD_ID,
   CONTACT,
   INSTAGRAM_URL,
+  OPENING_HOURS,
   SITE_URL,
   CATALOG_FILTERS,
 } from "@/lib/constants";
+import { jsonLdHtml } from "@/lib/json-ld";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -26,9 +30,9 @@ const sans = Montserrat({
   weight: ["300", "400", "500", "600"],
 });
 
-const title = `${BRAND} | Floristería en Honduras — El Progreso, Yoro y San Pedro Sula`;
+const title = `${BRAND} | Floristería en El Progreso, Yoro — Flores a domicilio en Honduras`;
 const description =
-  "RoseLune, floristería en Honduras. Ramos, cajas, canastas, arreglos, globos y detalles para eventos, con entrega a domicilio en El Progreso, Yoro y San Pedro Sula. Pedidos por WhatsApp.";
+  "RoseLune es una floristería en El Progreso, Yoro, Honduras. Ramos, cajas, canastas, arreglos florales, globos y detalles para eventos, con entrega a domicilio en El Progreso y San Pedro Sula. Pedidos por WhatsApp.";
 
 const categoryKeywords = CATALOG_FILTERS.filter((f) => f.id !== "all").map(
   (f) => `${f.label.toLowerCase()} de flores Honduras`,
@@ -84,8 +88,12 @@ export const metadata: Metadata = {
     images: ["/og.png"],
   },
   keywords: [
+    "floristería El Progreso",
+    "floristería en El Progreso Yoro",
+    "mejor floristería El Progreso",
+    "flores a domicilio El Progreso",
+    "arreglos florales El Progreso",
     "floristería Honduras",
-    "floristería El Progreso Yoro",
     "floristería San Pedro Sula",
     "florería cerca de mí",
     "flores El Progreso",
@@ -97,9 +105,12 @@ export const metadata: Metadata = {
     ...categoryKeywords,
     "RoseLune",
   ],
-  ...(GOOGLE_SITE_VERIFICATION
-    ? { verification: { google: GOOGLE_SITE_VERIFICATION } }
-    : {}),
+  verification: {
+    ...(GOOGLE_SITE_VERIFICATION ? { google: GOOGLE_SITE_VERIFICATION } : {}),
+    ...(BING_SITE_VERIFICATION
+      ? { other: { "msvalidate.01": BING_SITE_VERIFICATION } }
+      : {}),
+  },
   other: {
     "google-adsense-account": ADSENSE_PUBLISHER_ID,
   },
@@ -114,21 +125,29 @@ export default function RootLayout({
   const organizationLd = {
     "@context": "https://schema.org",
     "@type": ["Florist", "LocalBusiness"],
-    "@id": `${siteOrigin}/#negocio`,
+    "@id": BUSINESS_LD_ID,
     name: BRAND,
-    alternateName: "RoseLune Floristería Honduras",
+    alternateName: ["RoseLune Floristería", "RoseLune Floristería El Progreso"],
     description,
-    slogan: "Floristería en Honduras: ramos, cajas, canastas, arreglos, globos y eventos",
+    slogan: "Floristería en El Progreso, Yoro: ramos, cajas, canastas, arreglos, globos y eventos",
     url: SITE_URL,
     logo: `${siteOrigin}/logo.png`,
     image: `${siteOrigin}/og.png`,
     sameAs: [INSTAGRAM_URL],
-    telephone: CONTACT.phoneDisplay,
+    telephone: CONTACT.phoneE164,
     email: CONTACT.email,
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: CONTACT.phoneE164,
+      contactType: "customer service",
+      areaServed: "HN",
+      availableLanguage: "es",
+    },
     address: {
       "@type": "PostalAddress",
       addressLocality: "El Progreso",
       addressRegion: "Yoro",
+      postalCode: "23201",
       addressCountry: "HN",
     },
     hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -148,7 +167,7 @@ export default function RootLayout({
     priceRange: "$$",
     currenciesAccepted: "HNL",
     paymentAccepted: "Efectivo, Transferencia bancaria, WhatsApp Pay",
-    openingHours: "Mo-Sa 08:00-18:00",
+    openingHours: OPENING_HOURS.schema,
     knowsAbout: CATALOG_FILTERS.filter((f) => f.id !== "all").map(
       (f) => f.label,
     ),
@@ -163,14 +182,21 @@ export default function RootLayout({
       ),
     },
   };
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteOrigin}/#sitio`,
+    name: BRAND,
+    url: SITE_URL,
+    inLanguage: "es-HN",
+    publisher: { "@id": BUSINESS_LD_ID },
+  };
 
   return (
-    <html lang="es" className={`${display.variable} ${sans.variable} h-full`}>
+    <html lang="es-HN" className={`${display.variable} ${sans.variable} h-full`}>
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(organizationLd)} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(websiteLd)} />
       </head>
       <body className="min-h-full bg-paper font-sans text-ink antialiased">
         <Script

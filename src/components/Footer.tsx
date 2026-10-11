@@ -1,7 +1,14 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BRAND, CONTACT, INSTAGRAM_URL, NAV_LINKS, NEXUS_URL } from "@/lib/constants";
+import {
+  BRAND,
+  CONTACT,
+  INSTAGRAM_URL,
+  LOCAL_LANDING_PATH,
+  NAV_LINKS,
+  NEXUS_URL,
+} from "@/lib/constants";
 
 function SocialIcon({
   label,
@@ -74,6 +81,12 @@ export default function Footer() {
         </div>
 
         <nav className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2">
+          <Link
+            href={LOCAL_LANDING_PATH}
+            className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-brand"
+          >
+            Floristería en El Progreso
+          </Link>
           <Link
             href="/contacto"
             className="text-[11px] uppercase tracking-[0.14em] text-muted hover:text-brand"

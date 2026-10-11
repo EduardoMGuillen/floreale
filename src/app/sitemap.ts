@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/lib/constants";
+import { LOCAL_LANDING_PATH, SITE_URL } from "@/lib/constants";
 import { getProducts } from "@/lib/products";
+
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = SITE_URL.replace(/\/$/, "");
@@ -8,6 +10,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: origin, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
+    {
+      url: `${origin}${LOCAL_LANDING_PATH}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.95,
+    },
     { url: `${origin}/productos`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${origin}/contacto`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${origin}/terminos`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
@@ -19,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const products = await getProducts();
     productPages = products.map((p) => ({
       url: `${origin}/producto/${p.id}`,
-      lastModified: now,
+      lastModified: p.createdAt || now,
       changeFrequency: "weekly" as const,
       priority: 0.8,
     }));

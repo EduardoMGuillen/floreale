@@ -10,7 +10,7 @@ export default function Hero() {
     <section className="relative h-[62vh] min-h-[340px] max-h-[560px] w-full overflow-hidden sm:h-[68vh]">
       <Image
         src={demoImages.hero}
-        alt="Flor rosa RoseLune"
+        alt="Flores de RoseLune, floristería en El Progreso, Yoro"
         fill
         priority
         sizes="100vw"
@@ -33,7 +33,7 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.08 }}
           className="mt-3 text-4xl font-medium uppercase tracking-[0.14em] sm:text-6xl md:text-7xl"
         >
-          Floristería en Honduras
+          Floristería en El Progreso
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 14 }}
@@ -42,7 +42,7 @@ export default function Hero() {
           className="mt-3 max-w-md text-sm tracking-wide text-white/90 sm:text-base"
         >
           Ramos, cajas, canastas, arreglos, globos y detalles para eventos —
-          entrega en El Progreso, Yoro y San Pedro Sula
+          entrega a domicilio en El Progreso, Yoro y San Pedro Sula, Honduras
         </motion.p>
         <motion.a
           href="/productos"

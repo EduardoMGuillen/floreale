@@ -45,9 +45,20 @@ export const ADSENSE_PUBLISHER_ID = "ca-pub-5358801062744911";
 /** Código de verificación de Google Search Console (Configuración > Ajustes > Verificación de propiedad > etiqueta HTML). */
 export const GOOGLE_SITE_VERIFICATION =
   process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "";
+/** Bing Webmaster Tools (meta msvalidate.01). ChatGPT Search usa el índice de Bing. */
+export const BING_SITE_VERIFICATION =
+  process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "";
+
+export const LOCAL_LANDING_PATH = "/floristeria-el-progreso";
+export const BUSINESS_LD_ID = `${SITE_URL}/#negocio`;
+export const OPENING_HOURS = {
+  schema: "Mo-Sa 08:00-18:00",
+  display: "Lunes a sábado, 8:00 a.m. – 6:00 p.m.",
+};
 
 export const CONTACT = {
   phoneDisplay: "+504 9372-0140",
+  phoneE164: `+${process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || "50493720140"}`,
   phoneHref: `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || "50493720140"}`,
   email: "hola@roselune.com",
   address: "El Progreso, Yoro, Honduras",

@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductImage from "@/components/ProductImage";
-import { BRAND, SITE_URL } from "@/lib/constants";
+import { BRAND, BUSINESS_LD_ID, SITE_URL } from "@/lib/constants";
+import { jsonLdHtml } from "@/lib/json-ld";
 import { getProductById, getProducts } from "@/lib/products";
 import { whatsappBuyUrl } from "@/lib/whatsapp";
 
@@ -19,8 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: `Producto no encontrado | ${BRAND}` };
   }
 
-  const title = `${product.name} | ${product.category} — ${BRAND} Floristería Honduras`;
-  const description = `${product.description} Entrega en El Progreso, Yoro y San Pedro Sula. Pedidos por WhatsApp — L ${product.price.toLocaleString("es-HN")}.`;
+  const title = `${product.name} | ${product.category} — ${BRAND} Floristería El Progreso`;
+  const description = `${product.description} Entrega a domicilio en El Progreso, Yoro y San Pedro Sula. Pedidos por WhatsApp — L ${product.price.toLocaleString("es-HN")}.`;
 
   return {
     title,
@@ -68,9 +69,9 @@ export default async function ProductPage({ params }: Props) {
       price: product.price,
       priceCurrency: "HNL",
       availability: "https://schema.org/InStock",
-      areaServed: "HN",
+      areaServed: ["El Progreso, Yoro", "San Pedro Sula", "HN"],
       url: `${siteOrigin}/producto/${product.id}`,
-      seller: { "@type": "Organization", name: BRAND },
+      seller: { "@id": BUSINESS_LD_ID },
     },
   };
   const breadcrumbLd = {
@@ -95,14 +96,8 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="bg-paper">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(productLd)} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(breadcrumbLd)} />
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <p className="text-[11px] uppercase tracking-[0.14em] text-muted">
