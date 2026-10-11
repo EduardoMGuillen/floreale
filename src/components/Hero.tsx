@@ -20,24 +20,24 @@ export default function Hero() {
 
       <div className="relative flex h-full flex-col items-center justify-center px-4 text-center text-white">
         <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 12 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.55 }}
           className="text-[11px] font-medium uppercase tracking-[0.35em]"
         >
           {BRAND}
         </motion.p>
         <motion.h1
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 18 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.6, delay: 0.08 }}
           className="mt-3 text-4xl font-medium uppercase tracking-[0.14em] sm:text-6xl md:text-7xl"
         >
           Floristería en El Progreso
         </motion.h1>
         <motion.p
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 14 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.55, delay: 0.13 }}
           className="mt-3 max-w-md text-sm tracking-wide text-white/90 sm:text-base"
         >
@@ -46,8 +46,8 @@ export default function Hero() {
         </motion.p>
         <motion.a
           href="/productos"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 14 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.55, delay: 0.18 }}
           className="btn-pill btn-pill-light mt-8"
         >
@@ -57,8 +57,8 @@ export default function Hero() {
           href={INSTAGRAM_URL}
           target="_blank"
           rel="noopener noreferrer"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 10 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.5, delay: 0.28 }}
           className="mt-5 inline-flex items-center gap-2 text-sm tracking-wide text-white/85 transition hover:text-white"
           aria-label={`Instagram ${INSTAGRAM_HANDLE}`}

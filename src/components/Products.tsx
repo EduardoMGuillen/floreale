@@ -56,8 +56,8 @@ export default function Products({
     >
       <div className="mx-auto max-w-6xl">
         <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           className="text-center font-display text-3xl text-ink sm:text-4xl"
         >
@@ -96,8 +96,8 @@ export default function Products({
             {visible.map((product, index) => (
               <motion.article
                 key={product.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ y: 24 }}
+                whileInView={{ y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.45, delay: (index % 3) * 0.05 }}
               >

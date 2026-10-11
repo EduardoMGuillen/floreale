@@ -13,6 +13,13 @@ type Props = { params: Promise<{ id: string }> };
 
 export const dynamic = "force-dynamic";
 
+function clip(text: string, max: number) {
+  const clean = text.trim().replace(/\s+/g, " ");
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  return `${cut.slice(0, cut.lastIndexOf(" ") > 0 ? cut.lastIndexOf(" ") : cut.length)}…`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const product = await getProductById(id);
@@ -20,8 +27,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: `Producto no encontrado | ${BRAND}` };
   }
 
-  const title = `${product.name} | ${product.category} — ${BRAND} Floristería El Progreso`;
-  const description = `${product.description} Entrega a domicilio en El Progreso, Yoro y San Pedro Sula. Pedidos por WhatsApp — L ${product.price.toLocaleString("es-HN")}.`;
+  const fullTitle = `${product.name} | ${product.category} — ${BRAND} El Progreso`;
+  const title =
+    fullTitle.length <= 70 ? fullTitle : clip(`${product.name} | ${BRAND} El Progreso`, 70);
+  const suffix = ` L ${product.price.toLocaleString("es-HN")}. Entrega en El Progreso, Yoro.`;
+  const description = `${clip(product.description, 160 - suffix.length)}${suffix}`;
 
   return {
     title,

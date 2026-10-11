@@ -12,8 +12,8 @@ export default function CtaBand() {
     <section id="contacto" className="scroll-mt-24 border-t border-line bg-blush/50 py-20">
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
         >
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-muted">

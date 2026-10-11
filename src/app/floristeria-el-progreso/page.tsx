@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 
 const title = `Floristería en El Progreso, Yoro | ${BRAND} — Flores a domicilio`;
 const description =
-  "RoseLune es una floristería en El Progreso, Yoro, Honduras: ramos, cajas con flores, canastas, arreglos florales, globos y decoración para eventos, con entrega a domicilio. Pide por WhatsApp.";
+  "Floristería en El Progreso, Yoro: ramos, cajas con flores, canastas, arreglos y globos para eventos, con entrega a domicilio. Pide por WhatsApp.";
 
 export const metadata: Metadata = {
   title,

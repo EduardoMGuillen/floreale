@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import ContactoContent from "./ContactoContent";
 
 export const metadata: Metadata = {
-  title: "Contacto | RoseLune — Floristería en Honduras",
+  title: "Contacto | RoseLune — Floristería en El Progreso, Yoro",
   description:
     "Escríbenos por WhatsApp para pedir ramos, cajas, canastas, arreglos, globos y flores para eventos. Entrega en El Progreso, Yoro y San Pedro Sula, Honduras.",
   alternates: {

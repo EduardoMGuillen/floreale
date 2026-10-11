@@ -15,8 +15,8 @@ export default function About() {
     <section id="sobre" className="scroll-mt-24 border-t border-line bg-soft/60 py-20">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 20 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           className="relative aspect-square overflow-hidden bg-blush"
         >
@@ -30,8 +30,8 @@ export default function About() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 20 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
         >
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-muted">

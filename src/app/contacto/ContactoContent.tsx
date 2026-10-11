@@ -9,8 +9,8 @@ export default function ContactoContent() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: 20 }}
+        animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center"
       >
@@ -26,8 +26,8 @@ export default function ContactoContent() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: 20 }}
+        animate={{ y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
         className="mt-12 flex flex-col items-center gap-8"
       >

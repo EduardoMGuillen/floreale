@@ -30,9 +30,9 @@ const sans = Montserrat({
   weight: ["300", "400", "500", "600"],
 });
 
-const title = `${BRAND} | Floristería en El Progreso, Yoro — Flores a domicilio en Honduras`;
+const title = `${BRAND} | Floristería en El Progreso, Yoro — Flores a domicilio`;
 const description =
-  "RoseLune es una floristería en El Progreso, Yoro, Honduras. Ramos, cajas, canastas, arreglos florales, globos y detalles para eventos, con entrega a domicilio en El Progreso y San Pedro Sula. Pedidos por WhatsApp.";
+  "Floristería en El Progreso, Yoro, Honduras. Ramos, cajas, canastas, arreglos florales y globos con entrega a domicilio. Pedidos por WhatsApp.";
 
 const categoryKeywords = CATALOG_FILTERS.filter((f) => f.id !== "all").map(
   (f) => `${f.label.toLowerCase()} de flores Honduras`,
